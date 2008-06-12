@@ -1,0 +1,236 @@
+checkinstall (1.6.1-6) unstable; urgency=low
+
+  * Use the new Vcs-* fields.
+  * Do not ship empty directories.
+  * Use $(MAKE) instead of make in the makefile
+  * Support Provides: field in debian.
+  * Depend on dpkg-dev, since we use dpkg-architecture
+    (Closes: #484828)
+  * Move url to the Homepage field.
+  * Convert debian/copyright to UTF-8.
+  * Bump standards version to 3.8.0 (no changes needed).
+
+ -- Felipe Sateler <fsateler@gmail.com>  Thu, 12 Jun 2008 08:57:53 -0400
+
+checkinstall (1.6.1-5) unstable; urgency=low
+
+  * Fix typo: striping -> stripping.
+  	(Closes: #447776)
+  * Fix FTBFS on kfreebsd-amd64.
+  	(Closes: #451111)
+  * Move manpage to section 8 and note that checkinstall must be run as root.
+  	(Closes: #448533)
+
+ -- Felipe Sateler <fsateler@gmail.com>  Tue, 13 Nov 2007 10:29:15 -0300
+
+checkinstall (1.6.1-4) unstable; urgency=low
+
+  * Fix access() filtering in checkinstall.
+  	(Closes: #404542)
+  * Fix backup cleaning that may delete stuff we don't want to.
+  * Remove spurious quotes which may behave badly under some conditions.
+  * Find files created under /home and ask for exclusion.
+  * Don't strip installwatch.so in upstream's Makefile
+  	(Closes: #436621)
+
+ -- Felipe Sateler <fsateler@gmail.com>  Fri, 10 Aug 2007 20:56:47 -0400
+
+checkinstall (1.6.1-3) unstable; urgency=low
+
+  * Fix FTBFS in some archs, by fixing the build dependencies.
+  	(Closes: #422213)
+
+ -- Felipe Sateler <fsateler@gmail.com>  Fri, 04 May 2007 13:17:01 -0400
+
+checkinstall (1.6.1-2) unstable; urgency=low
+
+  * Avoid shell command reinterpretation.
+  	(Closes: #306075)
+  * Ease kernel module package creation by detecting depmod calls
+    and acting accordingly.
+    	(Closes: #373103)
+  * Fix FTBFS on GNU/kFreeBSD, patch from Cyril Brulebois.
+  	(Closes: #414310)
+  * Comment =yes and =no arguments to options in the man page.
+  	(Closes: #409340)
+  * Check for correct version numbers.
+  	(Closes: #175240)
+  * Check for correct package names in Debian.
+  	(Closes: #356524)
+  * Fix typos in checkinstall and installwatch man pages.
+  * Do not pase usage information through a pager.
+  * Fix charset in spanish and german translations
+       (Closes: #418494)
+  * Add XS-Vcs-Svn and XS-Vcs-Browser fields to debian/control
+  * Pass messages to gettext without \n, add it later.
+  * Correct the readlink definition to match the newer 2.5 glibc: now return
+    a ssize_t instead of an int.
+
+ -- Felipe Sateler <fsateler@gmail.com>  Sat, 21 Apr 2007 16:12:41 -0400
+
+checkinstall (1.6.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * Tag files in /etc as conffiles
+  	(Closes: #284786)
+  * Fix backup restoration changing permissions of the root directory.
+  	(Closes: #342578, #281823)
+  * Fix erronous manpage sgml files.
+
+ -- Felipe Sateler <fsateler@gmail.com>  Wed,  6 Dec 2006 00:02:32 -0300
+
+checkinstall (1.6.0-2) unstable; urgency=low
+
+  * Fix temporary script deletion (Thanks to David Jarvie for the patch)
+  	(Closes: Bug#367935)
+  * --requires works for all packages, not just rpm
+  * Default documentation installation to /usr/share/doc instead of /usr/doc
+  * Remove duplicate version information when usage information is displayed
+  * Fix getcwd when in filesystem translation mode. Patch from David Brown.
+  	(Closes: Bug#374648)
+  * Rewrite both man pages (we now build-dep in docbook-to-man)
+  	(Closes: Bug#238202, Bug#351969)
+  * Fix upper case detection under some locales
+  * Check for underscores in debian package names.
+  	(Closes: Bug#364813)
+  * Fix typo: maintaner != maintainer.
+  	(Closes: Bug#377609)
+  * Fix documentation installation directory (Thanks to Martintxo).
+  	(Closes: Bug#383541)
+
+ -- Felipe Sateler <fsateler@gmail.com>  Mon, 21 Aug 2006 20:18:19 -0400
+
+checkinstall (1.6.0-1) unstable; urgency=low
+
+  * Taken over checkinstall and installwatch.
+    - Merged with installwatch
+    - Recreated the packaging, and fixed installation locations.
+  * New upstream release
+    (Closes: Bug#347469, Bug#295229, Bug#322555)
+  * Suggests gettext
+  * Fixed typos in the checkinstall manpage. Thanks to Helge Kreutzmann.
+    (Closes: Bug#247999)
+  * Scripts now run bash instead of sh, due to possible bashisms
+  * Fixed amd64 installations, thanks to Martin Samuelsson and Alexandra N.
+    Kossovsky
+    (Closes: Bug#298152)
+  * Depends in findutils >= 4.2
+    (Closes: Bug#357496)
+  * Upgrade policy version to 3.7.2
+
+ -- Felipe Sateler <fsateler@gmail.com>  Tue, 10 Jan 2006 21:19:26 -0300
+
+checkinstall (1.5.3-3) unstable; urgency=medium
+
+  * Applied patch from "Martin H" to fix doc installation
+    (Closes: #174108)
+  * Now using /usr/bin/sensible-pager for a pager, instead of "less".
+    (Closes: Bug#225630)
+  * Regenerated and "fixed" manpage - Thanks Colin Watson for the fix.
+    (Closes: Bug#175141)
+
+ -- Matt Hope <dopey@debian.org>  Mon, 12 Apr 2004 22:56:58 +1000
+
+checkinstall (1.5.3-2) unstable; urgency=low
+
+  * Fixed directory path in checkinstall script
+    (Closes: Bug#164849)
+  * Added a "Depend" on "file".
+    (Closes: Bug#192611)
+  * Updated `Standards-Version'
+
+  * Applied patches/fixes from Morten Hustveit <morten@debian.org>
+    (Much respect for fixing these)
+     - Replaced `eval echo $1` with "$1" when setting maintainer.
+      (Closes: Bug#165483)
+     - Replaced description in man-page with a more suitable one.
+      (Closes: Bug#174538, Bug#212559)
+     - Default to creating Debian packages.
+      (Closes: Bug#181832)
+
+ -- Matt Hope <dopey@debian.org>  Sat, 11 Oct 2003 18:40:27 +1000
+
+checkinstall (1.5.3-1) unstable; urgency=low
+
+  * New upstream release
+    - PPC Arch "fixup" rewritten
+      (Closes: Bug#171040)
+
+  * Documentation directory name (/usr/share/doc/$PACKAGENAME) now
+    correctly calculated from the package name, rather than the source
+    directory name.
+    (Closes: Bug#165481)
+
+  * Documentation directory changed from defaulting to /usr/doc/ to
+    /usr/share/doc/
+    (Closes: Bug#165480)
+
+ -- Matt Hope <dopey@debian.org>  Sun,  8 Dec 2002 15:18:57 +1100
+
+checkinstall (1.5.2-2) unstable; urgency=low
+
+  * debian/rules; Changed #!/bin/sh to #!/bin/sh as script contains
+    bash-isms.
+    (Closes: Bug#157348)
+  * Added in a check for if (arch="ppc") { arch="powerpc" }
+    (Closes: Bug#155218)
+
+ -- Matt Hope <dopey@debian.org>  Wed, 21 Aug 2002 21:35:23 +1000
+
+checkinstall (1.5.2-1) unstable; urgency=low
+
+  * Initial package
+    (Closes: Bug#122914)
+
+ -- Matt Hope <dopey@debian.org>  Sat, 29 Jun 2002 15:38:08 +1000
+checkinstall (1.5.3-2) unstable; urgency=low
+
+  * Default installation type is now debian in /etc/checkinstall
+    (Closes: Bug#181832)
+
+  * Fixed dot at start of line in manpage
+    (Closes: Bug#175141)
+
+  * Changed defaults to not delete doc-pak, spec or description-pak
+    (Closes: Bug#165482)
+
+  * Fixed incorrect NAME secrion in manpage
+    (Closes: #174538)
+
+  * Fixed changelog entry (1.5.2-2) - changed to #!/bin/bash
+
+ -- Matt Hope <dopey@debian.org>  Sun, 23 Mar 2003 20:09:39 +1100
+
+checkinstall (1.5.3-1) unstable; urgency=low
+
+  * New upstream release
+    - PPC Arch "fixup" rewritten
+      (Closes: Bug#171040)
+
+  * Documentation directory name (/usr/share/doc/$PACKAGENAME) now
+    correctly calculated from the package name, rather than the source
+    directory name.
+    (Closes: Bug#165481)
+
+  * Documentation directory changed from defaulting to /usr/doc/ to
+    /usr/share/doc/
+    (Closes: Bug#165480)
+
+ -- Matt Hope <dopey@debian.org>  Sun,  8 Dec 2002 15:18:57 +1100
+
+checkinstall (1.5.2-2) unstable; urgency=low
+
+  * debian/rules; Changed #!/bin/sh to #!/bin/bash as script contains
+    bash-isms.
+    (Closes: Bug#157348)
+  * Added in a check for if (arch="ppc") { arch="powerpc" }
+    (Closes: Bug#155218)
+
+ -- Matt Hope <dopey@debian.org>  Wed, 21 Aug 2002 21:35:23 +1000
+
+checkinstall (1.5.2-1) unstable; urgency=low
+
+  * Initial package
+    (Closes: Bug#122914)
+
+ -- Matt Hope <dopey@debian.org>  Sat, 29 Jun 2002 15:38:08 +1000

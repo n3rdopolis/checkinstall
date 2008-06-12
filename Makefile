@@ -19,11 +19,11 @@ all:
 			;; \
 		esac ; \
 	done	
-	make -C installwatch-0.7.0beta5
+	$(MAKE) -C installwatch-0.7.0beta5
 	
 install: all
 	export
-	make -C installwatch-0.7.0beta5 install
+	$(MAKE) -C installwatch-0.7.0beta5 install
 	
 	mkdir -p $(BINDIR)
 	install checkinstall makepak $(BINDIR)
@@ -58,4 +58,4 @@ clean:
 	for file in locale/checkinstall-*.mo ; do \
 		rm -f $${file} ; \
 	done
-	make -C installwatch-0.7.0beta5 clean
+	$(MAKE) -C installwatch-0.7.0beta5 clean

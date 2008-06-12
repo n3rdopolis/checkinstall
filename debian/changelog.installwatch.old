@@ -1,0 +1,67 @@
+installwatch (0.6.3-2) unstable; urgency=low
+
+  * Set maintainer to Debian QA Group <packages@qa.debian.org> (package
+    is being orphaned).
+  * Bump standards version to 3.6.2.
+  * Drop the /usr/doc/installwatch -> /usr/share/doc/installwatch symlink.
+    (closes: #342745)
+
+ -- Greg Norris <adric@debian.org>  Tue, 10 Jan 2006 14:45:45 -0600
+
+installwatch (0.6.3-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Greg Norris <adric@debian.org>  Wed, 26 Jun 2002 16:42:52 -0500
+
+installwatch (0.5.5-4) unstable; urgency=low
+
+  * Applied patch from Adam Olsen, to allow compiling on systems without
+    MAXPATHLEN... Hurd, in this case.  Closes: #109951
+  * Updated to standards version 3.5.6.
+
+ -- Gregory T. Norris <adric@debian.org>  Fri,  7 Sep 2001 17:08:29 -0500
+
+installwatch (0.5.5-3) unstable; urgency=low
+
+  * Command line arguments which contained embedded whitespace could be
+    inadvertently split when passed to the installation command.  Fixed.
+  * Added `-D_GNU_SOURCE' to the compile command in the makefile, in order to
+    allow building under glibc2.2.
+  * Updated to standards version 3.2.1.
+
+ -- Gregory T. Norris <adric@debian.org>  Sat, 17 Feb 2001 17:20:14 -0600
+
+installwatch (0.5.5-2) unstable; urgency=low
+
+  * Cleaned up lintian errors/warnings
+
+ -- Gregory T. Norris <adric@debian.org>  Sat, 30 Oct 1999 09:54:05 -0500
+
+installwatch (0.5.5-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Gregory T. Norris <adric@debian.org>  Sat, 15 May 1999 09:52:46 -0500
+
+installwatch (0.5.4-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Gregory T. Norris <adric@debian.org>  Thu,  1 Apr 1999 20:28:04 +0000
+
+installwatch (0.5.3-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Gregory T. Norris <adric@debian.org>  Mon, 29 Mar 1999 04:34:33 -0600
+
+installwatch (0.5.1-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Gregory T. Norris <haphazard@socketis.net>  Sun, 20 Dec 1998 11:10:58 -0600
+
+Local variables:
+mode: debian-changelog
+End:

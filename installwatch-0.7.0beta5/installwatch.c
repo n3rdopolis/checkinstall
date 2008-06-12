@@ -44,6 +44,13 @@
 #include <dlfcn.h>
 #include <dirent.h>
 
+/* There's no d_off on GNU/kFreeBSD */
+#if defined(__FreeBSD_kernel__)
+#define D_OFF(X) (-1)
+#else
+#define D_OFF(X) (X)
+#endif
+
 #include "localdecls.h"
 
 #define DEBUG 1  
@@ -77,7 +84,7 @@ static int (*true_xmknod)(int ver,const char *, mode_t, dev_t *);
 static int (*true_open)(const char *, int, ...);
 static DIR *(*true_opendir)(const char *);
 static struct dirent *(*true_readdir)(DIR *dir);
-static int (*true_readlink)(const char*,char *,size_t);
+static ssize_t (*true_readlink)(const char*,char *,size_t);
 static char *(*true_realpath)(const char *,char *);
 static int (*true_rename)(const char *, const char *);
 static int (*true_rmdir)(const char *);
@@ -539,7 +546,7 @@ static int copy_path(const char *truepath,const char *translroot) {
 	struct utimbuf timbuf;
 	size_t truesz;
 	char linkpath[PATH_MAX+1];
-	size_t linksz;
+	ssize_t linksz;
 
 #if DEBUG
 	debug(2,"copy_path(%s,%s)\n",truepath,translroot);
@@ -738,7 +745,7 @@ int expand_path(string_t **list,const char *prefix,const char *suffix) {
 	char nwork[PATH_MAX+1];
 	char nsuffix[PATH_MAX+1];
 	char lnkpath[PATH_MAX+1];
-	size_t lnksz=0;
+	ssize_t lnksz=0;
 	string_t *pthis=NULL;
 	string_t *list1=NULL;
 	string_t *list2=NULL;
@@ -848,7 +855,7 @@ static int __instw_printdirent(struct dirent *entry) {
 			"\td_name    : \"%.*s\"\n",
 			entry,
 			entry->d_ino,
-			entry->d_off,
+			D_OFF(entry->d_off),
 			entry->d_reclen,
 			(int)entry->d_type,
 			(int)entry->d_reclen,(char*)(entry->d_name)
@@ -872,7 +879,7 @@ static int __instw_printdirent64(struct dirent64 *entry) {
 			"\td_name    : \"%.*s\"\n",
 			entry,
 			entry->d_ino,
-			entry->d_off,
+			D_OFF(entry->d_off),
 			entry->d_reclen,
 			(int)entry->d_type,
 			(int)entry->d_reclen,(char*)(entry->d_name)
@@ -1575,7 +1582,7 @@ static int instw_apply(instw_t *instw) {
 	struct stat reslvinfo;
 	instw_t iw;
 	char wpath[PATH_MAX+1];
-	size_t wsz=0;
+	ssize_t wsz=0;
 	char linkpath[PATH_MAX+1];
 
 
@@ -1671,7 +1678,7 @@ static int instw_filldirls(instw_t *instw) {
 	struct stat sinfo;
 	struct stat dinfo;
 	int wfd;
-	size_t wsz;
+	ssize_t wsz;
 	instw_t iw_entry;
 	int status=0;
 
@@ -2691,8 +2698,8 @@ struct dirent *readdir(DIR *dir) {
 	return result;
 }
 
-int readlink(const char *path,char *buf,size_t bufsiz) {
-	int result;
+ssize_t readlink(const char *path,char *buf,size_t bufsiz) {
+	ssize_t result;
 	instw_t instw;
 	int status;
 

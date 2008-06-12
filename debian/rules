@@ -1,0 +1,94 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode. 
+#export DH_VERBOSE=1
+
+manpages: debian/checkinstall.8 debian/installwatch.1
+debian/checkinstall.8: debian/checkinstall.sgml
+	docbook-to-man debian/checkinstall.sgml > debian/checkinstall.8
+debian/installwatch.1: debian/installwatch.sgml
+	docbook-to-man debian/installwatch.sgml > debian/installwatch.1
+
+build: build-stamp manpages
+build-stamp: 
+	dh_testdir
+	
+	$(MAKE)
+	
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp
+	
+	# Add here commands to clean up after the build process.
+	$(MAKE) clean
+	rm -f debian/checkinstall.1
+	rm -f debian/installwatch.1
+	
+	dh_clean -Xinstallwatch.c.rej
+
+TMPDIR=$(CURDIR)/debian/tmp
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -Xinstallwatch.c.rej
+	dh_installdirs
+	
+	# We override all paths: we want the binary in bin instead of
+	# sbin, the configuration file in etc, the locales in the
+	# standard directory, and the installwatch library in a subdir
+	# of usr/lib
+	$(MAKE) install PREFIX=$(TMPDIR)/usr LCDIR=$(TMPDIR)/usr/share/locale \
+		CONFDIR=$(TMPDIR)/etc BINDIR=$(TMPDIR)/usr/bin \
+		LIBDIR=$(TMPDIR)/usr/lib/checkinstall
+	# Delete the checkinstallrc-dist file from etc
+	rm -f $(TMPDIR)/etc/checkinstallrc-dist
+	
+	# installwatch's documentation
+	mkdir -p $(TMPDIR)/usr/share/doc/checkinstall
+	gzip -9c installwatch-0.7.0beta5/CHANGELOG \
+		> $(TMPDIR)/usr/share/doc/checkinstall/installwatch.changelog.gz
+	gzip -9c debian/changelog.installwatch.old \
+		> $(TMPDIR)/usr/share/doc/checkinstall/installwatch.changelog.Debian.gz
+	cp installwatch-0.7.0beta5/BUGS \
+		$(TMPDIR)/usr/share/doc/checkinstall/BUGS.installwatch
+	cp installwatch-0.7.0beta5/README \
+		$(TMPDIR)/usr/share/doc/checkinstall/README.installwatch
+	cp installwatch-0.7.0beta5/TODO \
+		$(TMPDIR)/usr/share/doc/checkinstall/TODO.installwatch
+	
+	# Modifications to the programs/config are applied here
+	
+	# Enable installwatch to find the shared library
+	sed -i -e 's|$(TMPDIR)||' $(TMPDIR)/usr/bin/installwatch
+	sed -i -e 's|PREFIX/lib|PREFIX/lib/checkinstall|' \
+		$(TMPDIR)/usr/bin/installwatch
+	
+	dh_install --sourcedir=$(TMPDIR)
+
+binary: install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs
+	dh_installdocs
+	dh_installman debian/installwatch.1 debian/checkinstall.8
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+# We don't have an architecture independent package
+binary-indep: 
+
+# Build the architecture dependant package using the common target.
+binary-arch: install
+	$(MAKE) -f debian/rules binary
+
+
+.PHONY: build clean binary-indep binary-arch binary-common binary install

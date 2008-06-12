@@ -30,7 +30,7 @@ install: all
 	if [ -r $(LIBDIR)/installwatch.so ]; then \
 		rm -f  $(LIBDIR)/installwatch.so; \
 	fi
-	install -s installwatch.so $(LIBDIR)
+	install installwatch.so $(LIBDIR)
 	
 	sed -e "s|#PREFIX#|$(PREFIX)|" < installwatch > $(BINDIR)/installwatch
 	chmod 755 $(BINDIR)/installwatch

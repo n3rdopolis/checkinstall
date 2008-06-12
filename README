@@ -343,7 +343,7 @@ CHANGE in CheckInstall 1.4.0:
 
  The variable declaration section in the checkinstall script has been removed,
  you should now edit the checkinstallrc file, normally installed under 
- /usr/local/lib/checkinstall.
+ /usr/local/lib/checkinstall (/etc in this Debian package).
 
 
  In the checkinstallrc file you will find some variables wich modify
