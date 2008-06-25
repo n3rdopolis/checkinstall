@@ -1,3 +1,9 @@
+checkinstall (1.6.1-7) UNRELEASED; urgency=low
+
+  * Recommend make since it's the most used install tool. (Closes: #487964).
+
+ -- Felipe Sateler <fsateler@gmail.com>  Wed, 25 Jun 2008 13:27:16 -0400
+
 checkinstall (1.6.1-6) unstable; urgency=low
 
   * Use the new Vcs-* fields.
