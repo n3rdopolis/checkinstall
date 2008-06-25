@@ -1,0 +1,16 @@
+***************
+*** 316,321 ****
+         true_unlink      = dlsym(libc_handle, "unlink");
+         true_utime       = dlsym(libc_handle, "utime");
+         true_utimes      = dlsym(libc_handle, "utimes");
+  
+  #if(GLIBC_MINOR >= 1)
+         true_creat64     = dlsym(libc_handle, "creat64");
+--- 317,323 ----
+         true_unlink      = dlsym(libc_handle, "unlink");
+         true_utime       = dlsym(libc_handle, "utime");
+         true_utimes      = dlsym(libc_handle, "utimes");
++        true_access      = dlsym(libc_handle, "access");
+  
+  #if(GLIBC_MINOR >= 1)
+         true_creat64     = dlsym(libc_handle, "creat64");
