@@ -26,7 +26,7 @@ do-clean:
 	
 	# Add here commands to clean up after the build process.
 	$(MAKE) clean
-	rm -f debian/checkinstall.1
+	rm -f debian/checkinstall.8
 	rm -f debian/installwatch.1
 	
 	dh_clean -Xinstallwatch.c.rej
