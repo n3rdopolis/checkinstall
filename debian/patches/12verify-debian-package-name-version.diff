@@ -1,0 +1,60 @@
+Index: checkinstall/checkinstall
+===================================================================
+--- checkinstall.orig/checkinstall	2008-06-25 19:47:28.000000000 -0400
++++ checkinstall/checkinstall	2008-06-25 19:47:29.000000000 -0400
+@@ -1181,7 +1181,7 @@
+       ! [ "$SUMMARY" ] && SUMMARY=`head -1 description-pak`
+       ! [ "$NAME" ] && NAME=`echo "$PKG_BASENAME" | rev | cut -f2- -d"-" | rev`
+ 
+-      if [ "$CK_DEBIAN" ]; then       # Convert name to lower case, and s/_/-/
++      if [ "$CK_DEBIAN" ]; then       # Make the name policy compliant
+       echo $NAME | grep -e "[[:upper:]]" &> /dev/null
+ 
+          if [ $? -eq 0 ]; then
+@@ -1191,12 +1191,18 @@
+ 
+ 
+          fi
+-      echo $NAME | grep -e "_" &> /dev/null
++      echo $NAME | grep -e '^[^0-9a-z]' &> /dev/null
+          if [ $? -eq 0 ]; then
+-	    echo
+-	    echog "*** Warning: The package name \"%s\" contains underscores.\n*** Warning: dpkg might not like that so I changed\n*** Warning: them to dashes." "$NAME"
+-	    NAME=`echo $NAME | sed -e 's/_/-/g'`
+-	 fi
++            echo
++	    echog "*** Warning: The package name \"%s\" does not start with\n*** Warning: an alphanumetic character. dpkg might not like that so I prefixed\n*** Warning: it with a number 0." "$NAME"
++            NAME=`echo $NAME | sed -e 's/^/0/'`
++         fi
++      echo $NAME | grep -e '[^0-9a-z+.-]' &> /dev/null
++         if [ $? -eq 0 ]; then
++            echo
++            echog "*** Warning: The package name \"%s\" contains illegal\n*** Warning: characters. dpkg might not like that so I changed\n*** Warning: them to dashes." "$NAME"
++            NAME=`echo $NAME | sed -e 's/[^0-9a-z+.-]/-/g'`
++         fi
+       fi
+ 
+ 
+@@ -1220,11 +1226,18 @@
+ 
+ 
+       if [ "$CK_DEBIAN" ]; then       # Check for a valid version for dpkg
+-         echo $VERSION | grep -e "[0-9]" &> /dev/null
+-         if [ $? -gt 0 ]; then
++	NEWVERS=$(echo $VERSION | egrep '^([[:alnum:]]+:)?[[:alnum:]]+([-:.+~][[:alnum:]]+)*(-[.[:alnum:]]+)?$' 2> /dev/null)
++	while [ "$NEWVERS" != "$VERSION" ]; do
+             echo
+-            echog "*** Warning: The package version \"%s\" does not\n*** Warning: contain any digits. dpkg might not like that." "$VERSION"
+-         fi
++	    echog "*** Warning: The package version \"%s\" is not a\n*** Warning: debian policy compliant one. Please specify an alternate one" "$VERSION"
++	    if [ $ACCEPT_DEFAULT -eq 0 ] ; then
++		read VERSION
++		NEWVERS=$(echo $VERSION | egrep '^([[:alnum:]]+:)?[[:alnum:]]+([-:.+~][[:alnum:]]+)*(-[.[:alnum:]]+)?$' 2> /dev/null)
++	    else
++		VERSION=0
++		NEWVERS=0
++	    fi
++	done
+       fi
+ 
+ 

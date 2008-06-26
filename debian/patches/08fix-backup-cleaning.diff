@@ -1,0 +1,19 @@
+Index: checkinstall/checkinstall
+===================================================================
+--- checkinstall.orig/checkinstall	2008-06-25 19:47:24.000000000 -0400
++++ checkinstall/checkinstall	2008-06-25 19:47:25.000000000 -0400
+@@ -289,9 +289,11 @@
+  restore_backup
+  echogn "Cleaning up..."
+  cd "$DIRECTORIO_FUENTE"
+- rm -rf ${TMP_DIR}
+- rm -f "$BUILDROOT"
+- rm -f "${RPMSOURCEDIR}/SOURCES/${PKG_BASENAME}.tgz"
++ [ -n "${TMP_DIR}" ] && [ -d ${TMP_DIR} ] && rm -rf ${TMP_DIR}
++ [ -n "${BUILDROOT}" ] && [ -d ${BUILDROOT} ] && rm -rf "${BUILDROOT}"
++ [ -n "${RPMSOURCEDIR}" ] &&
++   [ -f "${RPMSOURCEDIR}/SOURCES/${PKG_BASENAME}.tgz" ] &&
++   rm -f "${RPMSOURCEDIR}/SOURCES/${PKG_BASENAME}.tgz"
+  rm -f checkinstall-debug*
+ 
+  # If we had a pre-existing postinstall-pak, we keep it as it was.

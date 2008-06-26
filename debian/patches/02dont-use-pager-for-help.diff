@@ -1,0 +1,20 @@
+Index: checkinstall/checkinstall
+===================================================================
+--- checkinstall.orig/checkinstall	2008-06-25 18:29:45.000000000 -0400
++++ checkinstall/checkinstall	2008-06-25 18:30:12.000000000 -0400
+@@ -101,7 +101,6 @@
+ ! [ "$PAGER" ] && PAGER=more
+ 
+ 
+-   (
+    echo
+    echog "Usage: checkinstall [options] [command [command arguments]]"
+    echog "Options:"
+@@ -185,7 +184,6 @@
+    echog "--copyright                    Show Copyright information"
+    echog "--version                      Show version information"
+    echo
+-   ) | $PAGER
+    exit 1
+ }
+ 

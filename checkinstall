@@ -45,12 +45,12 @@ CHECKINSTALL_VERSION=1.6.1
 
 
 # gettext variables
-export TEXTDOMAINDIR=/usr/share/locale
+export TEXTDOMAINDIR=/usr/local/lib/checkinstall/locale
 export TEXTDOMAIN=checkinstall
 
 # .spec file path
 DIRECTORIO_FUENTE=`pwd`
-PKG_BASENAME=`basename "$DIRECTORIO_FUENTE"`
+PKG_BASENAME="`basename \"$DIRECTORIO_FUENTE\"`"
 SPEC_PATH=${PKG_BASENAME}.spec
 
 #############################################################################
@@ -71,9 +71,9 @@ fi
 
 ## gettext echo with newline at the end
 function echog() {
-   local format="$1"
+   local format="$1\n"
    shift
-   printf -- "$(ck_gettext "$format")\n" "$@" >&2
+   printf -- "$(ck_gettext "$format")" "$@" >&2
 }
 
 ## gettext echo with NO newline at the end
@@ -185,7 +185,7 @@ function usage() {
    echog "--copyright                    Show Copyright information"
    echog "--version                      Show version information"
    echo
-   ) 
+   ) | $PAGER
    exit 1
 }
 
@@ -271,8 +271,7 @@ function restore_backup {
  if [ $? -eq 0 ]; then
     echogn "Restoring overwritten files from backup..."
     cd ${TMP_DIR}/BACKUP
-       files=$(ls -A)
-       $TAR -cpf - $files | $TAR -f - -xvpC / &> /dev/null
+       $TAR -cpf - . | $TAR -f - -xvpC / &> /dev/null
     okfail
     echo
  fi
@@ -291,11 +290,9 @@ function cleanup {
  restore_backup
  echogn "Cleaning up..."
  cd "$DIRECTORIO_FUENTE"
- [ ! -z "${TMP_DIR}" ] && [ -d ${TMP_DIR} ] && rm -rf ${TMP_DIR}
- [ ! -z "${BUILDROOT}" ] && [ -f ${BUILDROOT} ] && rm -f "$BUILDROOT"
- [ ! -z ""${RPMSOURCEDIR}/SOURCES/${PKG_BASENAME}.tgz"" ] && 
-   [ -f "${RPMSOURCEDIR}/SOURCES/${PKG_BASENAME}.tgz" ] && 
-   rm -f "${RPMSOURCEDIR}/SOURCES/${PKG_BASENAME}.tgz"
+ rm -rf ${TMP_DIR}
+ rm -f "$BUILDROOT"
+ rm -f "${RPMSOURCEDIR}/SOURCES/${PKG_BASENAME}.tgz"
  rm -f checkinstall-debug*
 
  # If we had a pre-existing postinstall-pak, we keep it as it was.
@@ -379,18 +376,6 @@ function getparameter () {
 
 }
 
-# This function is used to properly escape shell commands, so
-# we don't interpret the install command twice. This is useful
-# for making commands like 'make CC="gcc -some -options" install'
-# work as expected.
-
-function shell_escape() {
-	for str in "$@" ; do
-		echo -n "\"$str\" "
-	done;
-	echo
-}
-
 
 
                       #################################
@@ -401,13 +386,13 @@ function shell_escape() {
 ckversion
 echo
 
-if ! [ -f /etc/checkinstallrc ]; then
-   echog "The checkinstallrc file was not found at:\n/etc/checkinstallrc"
+if ! [ -f /usr/local/lib/checkinstall/checkinstallrc ]; then
+   echog "The checkinstallrc file was not found at:\n/usr/local/lib/checkinstall/checkinstallrc"
    echo
    echog "Assuming default values."
 else
 # Get our default settings from the rc file
-source /etc/checkinstallrc
+source /usr/local/lib/checkinstall/checkinstallrc
 fi
 
 
@@ -517,7 +502,7 @@ while [ "$1" != "--" ]; do
                INSTYPE=D;;
             *)
                echo
-               echo "$1 is not a valid packaging system. Please use \'rpm\', \'slackware\' or \'debian\'"
+               echo $1 is not a valid packaging system. Please use \'rpm\', \'slackware\' or \'debian\'
                echo 
                echo
                exit 1
@@ -757,10 +742,10 @@ EOF
    shift
 done
 
-# See if we have an install command
+# See if we have and install command
 shift
 
-[ "$1" = "" ] && set -- make install
+[ "$1" = "" ] && set -- "make install"
 
 # End of argument parsing
 
@@ -900,8 +885,8 @@ shift
 
 
 
-INSTALLCMD=("$@")
-[ -z "$INSTALLCMD" ] && INSTALLCMD=(make install)
+INSTALLCMD="$@"
+: ${INSTALLCMD:='make install'}
 
 # The editor we use to review the file list and .spec or control file
 if ! [ -x "$VISUAL" ]; then
@@ -1194,18 +1179,12 @@ fi
 
 
          fi
-      echo $NAME | grep -e '^[^0-9a-z]' &> /dev/null
+      echo $NAME | grep -e "_" &> /dev/null
          if [ $? -eq 0 ]; then
-            echo
-	    echog "*** Warning: the package name \"%s\" does not start with\n*** Warning: an alphanumeric character. dpkg might not like that so I \n*** Warning: changed it to a number 0." $NAME
-	    NAME=`echo $NAME | sed -e 's/^./0/'`
-         fi
-      echo $NAME | grep -e '[^0-9a-z+.-]' &> /dev/null
-         if [ $? -eq 0 ]; then
-            echo
-            echog "*** Warning: The package name \"%s\" contains illegal.\n*** Warning: characters. dpkg might not like that so I changed\n*** Warning: them to dashes." "$NAME"
-            NAME=`echo $NAME | sed -e 's/[^0-9a-z+.-]/-/g'`
-         fi
+	    echo
+	    echog "*** Warning: The package name \"%s\" contains underscores.\n*** Warning: dpkg might not like that so I changed\n*** Warning: them to dashes." "$NAME"
+	    NAME=`echo $NAME | sed -e 's/_/-/g'`
+	 fi
       fi
 
 
@@ -1217,7 +1196,7 @@ fi
 
          # If we did not then try getting it from the config.log file
          if [ -f "$DIRECTORIO_FUENTE/config.log" ]; then
-            VERSION=`grep '#define VERSION' config.log| awk -F '"' '{print $ 2}'`
+            VERSION=`grep '#define VERSION' config.log| awk -F \" '{print $ 2}'`
 
          else
 
@@ -1229,18 +1208,11 @@ fi
 
 
       if [ "$CK_DEBIAN" ]; then       # Check for a valid version for dpkg
-         NEWVERS=$(echo $VERSION | egrep '^([[:alnum:]]+:)?[[:alnum:]]+([-:.+~][[:alnum:]]+)*(-[.[:alnum:]]+)?$' 2> /dev/null)
-	 while [ "$NEWVERS" != "$VERSION" ]; do
+         echo $VERSION | grep -e "[0-9]" &> /dev/null
+         if [ $? -gt 0 ]; then
             echo
-            echog "*** Warning: The package version \"%s\" is not a\n*** Warning: debian policy compliant one. Please specify an alternate one" "$VERSION"
-	    if [ $ACCEPT_DEFAULT -eq 0 ] ; then
-		    read VERSION
-		    NEWVERS=$(echo $VERSION | egrep '^([[:alnum:]]+:)?[[:alnum:]]+([-:.+~][[:alnum:]]+)*(-[.[:alnum:]]+)?$' 2> /dev/null)
-	    else
-		    VERSION=0
-		    NEWVERS=0
-	    fi
-         done
+            echog "*** Warning: The package version \"%s\" does not\n*** Warning: contain any digits. dpkg might not like that." "$VERSION"
+         fi
       fi
 
 
@@ -1300,8 +1272,7 @@ fi
       echog "8 -  Source location: [ %s ]" "$SOURCE"
       echog "9 -  Alternate source location: [ %s ]" "$ALTSOURCE"
       echog "10 - Requires: [ %s ]" "$REQUIRES"
-      [ "$CK_REDHAT" -o "$CK_DEBIAN" ] && \
-          echog "11 - Provides: [ %s ]" "$PROVIDES"
+      [ "$CK_REDHAT" ] && echog "11 - Provides: [ %s ]" "$PROVIDES"
 
 
       echo
@@ -1408,11 +1379,8 @@ cat << EOF > $TMP_SCRIPT
 #!/bin/sh
 
 cd "$DIRECTORIO_FUENTE"
-EOF
+$INSTALLCMD
 
-shell_escape "${INSTALLCMD[@]}" >> $TMP_SCRIPT
-
-cat << EOF >> $TMP_SCRIPT
 # Report success or failure
 if [ \$? -eq 0 ]; then
    exit 0
@@ -1427,7 +1395,7 @@ chmod 700 $TMP_SCRIPT
 
 
 echo
-echogn "Installing with %s..." "${INSTALLCMD[*]}"
+echogn "Installing with %s..." "$INSTALLCMD"
 
 
 #
@@ -1526,10 +1494,10 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	# Find regular files first
 	[ $DEBUG -gt 0 ] && echo "debug: BASE_TMP_DIR: $BASE_TMP_DIR"
-	cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 3 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | sort -u > /${TMP_DIR}/newfiles
+	cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[       ]*unlink' | cut -f 3 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | sort -u > /${TMP_DIR}/newfiles
 
 	# symlinks are next
-	cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 4 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | grep -v "#success" | sort -u  >> /${TMP_DIR}/newfiles
+	cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[       ]*unlink' | cut -f 4 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | grep -v "#success" | sort -u  >> /${TMP_DIR}/newfiles
 
 	# OK, now we clean it up a bit
 	mv /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/newfiles.installwatch
@@ -1559,21 +1527,6 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	   cp /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/newfiles
 	done
 
-	# Find files created under /home
-	grep '^/home' ${TMP_DIR}/newfile > /${TMP_DIR}/unwanted
-	if [ $? -eq 0 ]; then
-	   echo
-	   echog "Some of the files created by the installation are inside the home directory: /home"
-	   echo
-	   echogn "You probably don't want them to be included in the package.\nDo you want me to list them? "
-	   if yorn "n"; then
-	       $PAGER ${TMP_DIR}/unwanted
-           fi
-	   echogn "Should I exclude them from the package? (Saying yes is a good idea) "
-	   if yorn "n"; then
-	       sed -i -e '/^\/home/d' ${TMP_DIR}/newfiles
-           fi
-	fi
 
 	## Find any files created in `pwd`. We probably don't want them here
 
@@ -1659,9 +1612,9 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	if [ $STRIP_ELF -eq 1 ]; then
 	   echo
 	   if [ $STRIP_SO_ELF -eq 1 ]; then
-	       echogn "Stripping ELF binaries and libraries..."
+	       echogn "Striping ELF binaries and libraries..."
 	   else
-	       echogn "Stripping ELF binaries..."
+	       echogn "Striping ELF binaries..."
 	   fi
 	   for f in `find ${BUILD_DIR} -type f \( -perm -0100 -or -perm -0010 -or -perm -0001 \)` ; do
 
@@ -1677,7 +1630,7 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	   okfail
 	fi
 				     ###################
-				     # End of stripping #
+				     # End of striping #
 	##############################################################################
 
 
@@ -1845,44 +1798,6 @@ fi
 
                        ####################################
                        # End of Identify shared libraries # 
-##############################################################################
-
-##############################################################################
-                          # Identify kernel modules #
-			  ###########################
-
-# Find out if we installed a kernel module, and if so run depmod in the postinst
-# and delete the files depmod touches (they conflict with other packages)
-# These files are modules.* inside the kernel modules directory.
-
-DEPFILES=$(cat ${TMP_DIR}/newfiles | grep -E 'modules\.(dep|pcimap|usbmap|ccwmap|ieee1394map|isapnpmap|inputmap|ofmap|seriomap|alias|symbols)' )
-if [ ! -z "$DEPFILES" ] ; then
-	echo
-	echog "Kernel modules found. Calling depmod in the postinstall script"
-	# Delete references to the depmod generated files
-	sed -r -i -e '\,modules\.(dep|pcimap|usbmap|ccwmap|ieee1394map|isapnpmap|inputmap|ofmap|seriomap|alias|symbols),d' ${TMP_DIR}/newfiles
-	# And the files themselves
-	for file in $DEPFILES ; do
-		rm ${BUILD_DIR}/$file
-	done
-	# Find out the kernel version.
-	# Ugly hack, but works in Debian and should on many other systems.
-	# The file must be /any/dir/<version>/modules.*
-	KVER=$(echo $DEPFILES | awk '{print $1}' | sed -e 's|/modules\..*||' | xargs basename )
-	# Add depmod to the postinst
-
-	# This will be redundant if we already have a postinstall script.
-	# Nevertheless, it is harmless.
-	echo "#!/bin/sh" >> ${DIRECTORIO_FUENTE}/postinstall-pak
-	echo "#" >> ${DIRECTORIO_FUENTE}/postinstall-pak
-	echo "# postinstall script, created by checkinstall-${CHECKINSTALL_VERSION}" >> ${DIRECTORIO_FUENTE}/postinstall-pak
-	echo "#" >> ${DIRECTORIO_FUENTE}/postinstall-pak
-
-	echo "depmod $KVER" >> ${DIRECTORIO_FUENTE}/postinstall-pak
-fi
-
-                        ##################################
-		        # End of Identify kernel modules #
 ##############################################################################
 
 
@@ -2363,7 +2278,7 @@ fi
    
 if ! [ $FAILED -gt 0 ]; then
    PKG_LOCATION="$RPMPKG"
-   INSTALLSTRING="rpm -i `basename "$RPMPKG"`"
+   INSTALLSTRING="rpm -i `basename \"$RPMPKG\"`"
    REMOVESTRING="rpm -e ${PKG_BASENAME}-${RELEASE}"
 fi
    
@@ -2424,7 +2339,6 @@ Maintainer: $MAINTAINER
 Architecture: $ARCHITECTURE
 Version: ${VERSION}-${RELEASE}
 Depends: $REQUIRES
-Provides: $PROVIDES
 Description: $SUMMARY
 EOF
 
@@ -2528,7 +2442,7 @@ fi
  
 if ! [ $FAILED -gt 0 ]; then
    PKG_LOCATION="$DEBPKG"
-   INSTALLSTRING="dpkg -i `basename "$DEBPKG"`"
+   INSTALLSTRING="dpkg -i `basename \"$DEBPKG\"`"
    REMOVESTRING="dpkg -r ${PKG_BASENAME}"
 fi
 
@@ -2578,7 +2492,7 @@ if ! [ $FAILED -gt 0 ]; then
             echo
          else
             # Update the package location
-            PKG_LOCATION="${PAK_DIR}/`basename "$PKG_LOCATION"`"
+            PKG_LOCATION="${PAK_DIR}/`basename \"$PKG_LOCATION\"`"
          fi
       else 
          echo

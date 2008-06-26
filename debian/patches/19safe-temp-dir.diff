@@ -1,0 +1,71 @@
+Index: checkinstall/checkinstall
+===================================================================
+--- checkinstall.orig/checkinstall	2008-06-25 20:33:22.000000000 -0400
++++ checkinstall/checkinstall	2008-06-25 20:38:39.000000000 -0400
+@@ -962,16 +962,8 @@
+ 
+ # Find a safe TMP_DIR
+ 
+-TMP_DIR=${BASE_TMP_DIR}/`awk 'BEGIN { srand(); for (i=1;i<22;i++) { a=95; while (a > 90 && a < 97) { a=65+int(50*rand())}; printf("%c", a) } }'`
+-[ -e "$TMP_DIR" ] && rm -rf $TMP_DIR
+-if [ -e "$TMP_DIR" ]; then 
+-   echo
+-   echog "My temp dir exists already.\nThis looks like a symlink attack!"
+-   echo 
+-   echog "*** Aborting"
+-   echo
+-   exit 1
+-fi
++TMP_DIR=`mktemp -q -d -p "${BASE_TMP_DIR}"`
++RETURN=$?
+ 
+ if [ "$TMP_DIR" = "$BASE_TMP_DIR" -o "$TMP_DIR" = "/" ]; then
+   echo 
+@@ -982,11 +974,6 @@
+   exit 1
+ fi
+ 
+-
+-mkdir $TMP_DIR
+-chmod 700 $TMP_DIR
+-RETURN=$?
+-
+ if [ $RETURN -gt 0 ]; then
+    echo
+    echog "**** Failed to create temp dir! \n**** Do you have write permission for %s? \n\n**** Aborting installation." "$BASE_TMP_DIR"
+Index: checkinstall/installwatch-0.7.0beta5/installwatch
+===================================================================
+--- checkinstall.orig/installwatch-0.7.0beta5/installwatch	2008-06-25 20:39:28.000000000 -0400
++++ checkinstall/installwatch-0.7.0beta5/installwatch	2008-06-25 20:43:00.000000000 -0400
+@@ -74,30 +74,7 @@
+ 	local mkt_refdir=$1
+ 	local mkt_wrkdir=""
+ 
+-	mkt_wrkdir=${BASE_TMP_DIR}/\
+-`awk 'BEGIN {\
+-	srand();\
+-	for (i=1;i<21;i++) {\
+-		a=95;\
+-		while (a > 90 && a < 97) {\
+-			a=65+int(50*rand())\
+-		};\
+-		printf("%c", a) \
+-	}\
+-}'`
+-	
+-	[ -e "${mkt_wrkdir}" ] && rm -rf ${mkt_wrkdir}
+-	if [ -e "${mkt_wrkdir}" ]; then 
+-		echo
+-		echo "Error : My temp dir exists already. This looks like a symlink attack!"
+-		echo 
+-		echo "*** Aborting ***"
+-		echo
+-		exit 1
+-	fi	
+-
+-	mkdir ${mkt_wrkdir}
+-	chmod 0700 ${mkt_wrkdir}
++	mkt_wrkdir=`mktemp -q -d -p ${BASE_TMP_DIR}`
+ 
+ 	eval $mkt_refdir=\$mkt_wrkdir
+ }

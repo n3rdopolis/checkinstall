@@ -10,14 +10,16 @@ debian/installwatch.1: debian/installwatch.sgml
 	docbook-to-man debian/installwatch.sgml > debian/installwatch.1
 
 build: build-stamp manpages
-build-stamp: 
+build-stamp: patch
 	dh_testdir
 	
 	$(MAKE)
 	
 	touch build-stamp
 
-clean:
+clean: unpatch
+unpatch: do-clean
+do-clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp
@@ -90,5 +92,6 @@ binary-indep:
 binary-arch: install
 	$(MAKE) -f debian/rules binary
 
+include /usr/share/quilt/quilt.make
 
 .PHONY: build clean binary-indep binary-arch binary-common binary install

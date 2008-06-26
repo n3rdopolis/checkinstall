@@ -39,11 +39,11 @@ checkinstall-es.po
 3) Now create the locale directory for your language. Remember to use the same
    ISO codes you use in your LC_ALL environment variable:
 
-mkdir -p /usr/share/locale/es_MX/LC_MESSAGES
+mkdir -p /usr/local/lib/checkinstall/locale/es_MX/LC_MESSAGES
 
 4) Next, you should generate the .mo binary message file. Run msgfmt:
 
-msgfmt -o /usr/share/locale/es_MX/LC_MESSAGES/checkinstall.mo \
+msgfmt -o /usr/local/lib/checkinstall/locale/es_MX/LC_MESSAGES/checkinstall.mo \
      checkinstall-es.po
 
 (The above goes all in one line)
