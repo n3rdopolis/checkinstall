@@ -1,14 +1,19 @@
-checkinstall (1.6.1-7) UNRELEASED; urgency=high
+checkinstall (1.6.1-8) UNRELEASED; urgency=low
 
   * Recommend make since it's the most used install tool. (Closes: #487964).
   * Use quilt for managing patches to upstream sources.
   * Allow Requires to be used in Debian. (Closes: #469639)
-  * Use mktemp instead of awk magic to create temporary directories.
-    The original implementation had a race condition that allowed for a
-    symlink attack. This is security related, so set urgency to high.
   * Turn off system translation by default, since it is currently broken.
 
  -- Felipe Sateler <fsateler@gmail.com>  Wed, 25 Jun 2008 13:27:16 -0400
+
+checkinstall (1.6.1-7) unstable; urgency=high
+
+  * Use mktemp instead of awk magic to create temporary directories.
+    The original implementation had a race condition that allowed for a
+    symlink attack. This is security related, so set urgency to high.
+
+ -- Felipe Sateler <fsateler@gmail.com>  Wed, 25 Jun 2008 23:58:05 -0400
 
 checkinstall (1.6.1-6) unstable; urgency=low
 
