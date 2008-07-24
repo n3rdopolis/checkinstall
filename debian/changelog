@@ -4,6 +4,7 @@ checkinstall (1.6.1-8) UNRELEASED; urgency=low
   * Use quilt for managing patches to upstream sources.
   * Allow Requires to be used in Debian. (Closes: #469639)
   * Turn off system translation by default, since it is currently broken.
+  * Update the Vcs-* tags since we moved to Git.
 
  -- Felipe Sateler <fsateler@gmail.com>  Wed, 25 Jun 2008 13:27:16 -0400
 
