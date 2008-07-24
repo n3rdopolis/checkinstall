@@ -1,0 +1,8 @@
+checkinstall (1.6.1-7) unstable; urgency=low
+
+   Filesystem translation is known to be broken recently due to a new set of
+   system calls (the *at functions), which installwatch doesn't currently
+   handle. This means that you should turn off filesystem translation until
+   installwatch implements these calls.
+
+ -- Felipe Sateler <fsateler@gmail.com>  Wed, 25 Jun 2008 23:40:51 -0400
