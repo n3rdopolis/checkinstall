@@ -1,4 +1,4 @@
-checkinstall (1.6.1-7) unstable; urgency=low
+checkinstall (1.6.1-8) unstable; urgency=low
 
    Filesystem translation is known to be broken recently due to a new set of
    system calls (the *at functions), which installwatch doesn't currently
