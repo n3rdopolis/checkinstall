@@ -1,4 +1,4 @@
-checkinstall (1.6.1-8) UNRELEASED; urgency=low
+checkinstall (1.6.1-8) unstable; urgency=low
 
   * Recommend make since it's the most used install tool. (Closes: #487964).
   * Use quilt for managing patches to upstream sources.
@@ -6,7 +6,7 @@ checkinstall (1.6.1-8) UNRELEASED; urgency=low
   * Turn off system translation by default, since it is currently broken.
   * Update the Vcs-* tags since we moved to Git.
 
- -- Felipe Sateler <fsateler@gmail.com>  Wed, 25 Jun 2008 13:27:16 -0400
+ -- Felipe Sateler <fsateler@gmail.com>  Thu, 24 Jul 2008 14:34:06 -0400
 
 checkinstall (1.6.1-7) unstable; urgency=high
 
