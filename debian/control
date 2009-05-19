@@ -2,7 +2,7 @@ Source: checkinstall
 Section: admin
 Priority: optional
 Maintainer: Felipe Sateler <fsateler@gmail.com>
-Build-Depends: debhelper (>= 7.0.0), gettext, docbook-to-man, libc6-dev (>= 2.5) [!alpha !ia64 !kfreebsd-i386 !kfreebsd-amd64 !hurd-i386], libc6.1-dev (>= 2.5) [alpha ia64], quilt
+Build-Depends: debhelper (>= 7.0.0), gettext, docbook-to-man, quilt
 Standards-Version: 3.8.0
 Vcs-Git: git://git.debian.org/git/collab-maint/checkinstall.git
 Vcs-Browser: http://git.debian.org/?p=collab-maint/checkinstall.git;a=summary
