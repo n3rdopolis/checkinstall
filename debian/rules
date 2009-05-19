@@ -3,41 +3,24 @@
 # Uncomment this to turn on verbose mode. 
 #export DH_VERBOSE=1
 
-manpages: debian/checkinstall.8 debian/installwatch.1
-debian/checkinstall.8: debian/checkinstall.sgml
+%:
+	dh --with quilt $@
+
+override_dh_auto_build:
+	dh_auto_build
 	docbook-to-man debian/checkinstall.sgml > debian/checkinstall.8
-debian/installwatch.1: debian/installwatch.sgml
 	docbook-to-man debian/installwatch.sgml > debian/installwatch.1
 
-build: build-stamp manpages
-build-stamp: patch
-	dh_testdir
-	
-	$(MAKE)
-	
-	touch build-stamp
-
-clean: unpatch
-unpatch: do-clean
-do-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp
-	
-	# Add here commands to clean up after the build process.
+override_dh_auto_clean:
 	$(MAKE) clean
 	rm -f debian/checkinstall.8
 	rm -f debian/installwatch.1
-	
+
+override_dh_clean:
 	dh_clean -Xinstallwatch.c.rej
 
 TMPDIR=$(CURDIR)/debian/tmp
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -Xinstallwatch.c.rej
-	dh_installdirs
-	
+override_dh_auto_install:
 	# We override all paths: we want the binary in bin instead of
 	# sbin, the configuration file in etc, the locales in the
 	# standard directory, and the installwatch library in a subdir
@@ -68,30 +51,9 @@ install: build
 	sed -i -e 's|PREFIX/lib|PREFIX/lib/checkinstall|' \
 		$(TMPDIR)/usr/bin/installwatch
 	
+override_dh_installman:
+	dh_installman debian/installwatch.1 debian/checkinstall.8
+
+override_dh_install:
 	dh_install --sourcedir=$(TMPDIR)
 
-binary: install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs
-	dh_installdocs
-	dh_installman debian/installwatch.1 debian/checkinstall.8
-	dh_strip
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-# We don't have an architecture independent package
-binary-indep: 
-
-# Build the architecture dependant package using the common target.
-binary-arch: install
-	$(MAKE) -f debian/rules binary
-
-include /usr/share/quilt/quilt.make
-
-.PHONY: build clean binary-indep binary-arch binary-common binary install
