@@ -10,7 +10,7 @@ Homepage: http://asic-linux.com.mx/~izto/checkinstall/
 
 Package: checkinstall
 Architecture: any
-Depends: ${shlibs:Depends}, file, findutils (>= 4.2), dpkg-dev, ${misc:Depends}
+Depends: ${shlibs:Depends}, file, dpkg-dev, ${misc:Depends}
 Recommends: make
 Suggests: gettext
 Replaces: installwatch
