@@ -20,3 +20,4 @@ checkinstall-defaults.diff
 17dont-strip-installwatch.diff
 18fix-locale-charset.diff
 19safe-temp-dir.diff
+20allow-arch-override.diff
