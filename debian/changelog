@@ -1,3 +1,17 @@
+checkinstall (1.6.1-9) unstable; urgency=low
+
+  * Move to debhelper 7
+  * Add misc:Depends to the Depends line
+  * Remove dependency on findutils
+  * Remove dependency on libc headers
+  * Use correct quilt version
+  * Update the checkinstall homepage
+  * Allow overriding architecture in Debian. Closes: #501027
+  * Document use of quilt in patch management
+  * Update standards version (no changes needed)
+
+ -- Felipe Sateler <fsateler@gmail.com>  Thu, 24 Sep 2009 14:33:05 -0400
+
 checkinstall (1.6.1-8) unstable; urgency=low
 
   * Recommend make since it's the most used install tool. (Closes: #487964).
