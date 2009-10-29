@@ -21,3 +21,4 @@ checkinstall-defaults.diff
 18fix-locale-charset.diff
 19safe-temp-dir.diff
 20allow-arch-override.diff
+21build-glibc-2.10.diff
