@@ -1,0 +1,16 @@
+Backticks have to be escaped in HEREDOCs. Remove it since it is ugly anyway.
+Thanks Andrey Smachev.
+
+Index: checkinstall/installwatch-0.7.0beta5/installwatch
+===================================================================
+--- checkinstall.orig/installwatch-0.7.0beta5/installwatch	2009-11-17 14:47:54.000000000 -0300
++++ checkinstall/installwatch-0.7.0beta5/installwatch	2009-11-17 14:48:15.000000000 -0300
+@@ -167,7 +167,7 @@
+ 		--copyright|--version)
+ 			cat << EOF
+ 
+-Copyright (C) 1998 Pancrazio `Ezio' de Mauro 
++Copyright (C) 1998 Pancrazio 'Ezio' de Mauro 
+ Copyright (C) 2002 Felipe Eduardo Sanchez Diaz Duran <izto@asic-linux.com.mx>
+ 
+     This program is free software; you can redistribute it and/or modify
