@@ -1,3 +1,11 @@
+checkinstall (1.6.1-10) unstable; urgency=low
+
+  * Fix build failure with glibc 2.10. Thanks Joao Pinto.
+     Closes: #552860
+  * Remove backtick from HEREDOC. Closes: #556725
+
+ -- Felipe Sateler <fsateler@gmail.com>  Tue, 17 Nov 2009 14:52:24 -0300
+
 checkinstall (1.6.1-9) unstable; urgency=low
 
   * Move to debhelper 7
