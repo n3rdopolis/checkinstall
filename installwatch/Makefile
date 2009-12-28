@@ -1,5 +1,5 @@
 # Makefile for installwatch
-# $Id: Makefile,v 0.7.0.5 2006/11/01 06:39:28 izto Exp $
+# $Id: Makefile,v 0.7.0.6 2008/11/09 07:49:34 izto Exp $
 
 # Well, the only configurable part is the following variable.
 # Make sure the directory you specify exists.
@@ -8,7 +8,7 @@ PREFIX=/usr/local
 
 # End of configurable part
 
-VERSION=0.7.0beta5
+VERSION=0.7.0beta7
 
 BINDIR=$(PREFIX)/bin
 LIBDIR=$(PREFIX)/lib
@@ -21,7 +21,7 @@ installwatch.so: installwatch.o
 installwatch.o: installwatch.c localdecls.h
 	gcc -Wall -c -D_GNU_SOURCE -DPIC -fPIC -D_REENTRANT -DVERSION=\"$(VERSION)\" installwatch.c
 
-localdecls.h:
+localdecls.h: create-localdecls
 	./create-localdecls
 
 install: all
@@ -30,7 +30,7 @@ install: all
 	if [ -r $(LIBDIR)/installwatch.so ]; then \
 		rm -f  $(LIBDIR)/installwatch.so; \
 	fi
-	install -s installwatch.so $(LIBDIR)
+	install installwatch.so $(LIBDIR)
 	
 	sed -e "s|#PREFIX#|$(PREFIX)|" < installwatch > $(BINDIR)/installwatch
 	chmod 755 $(BINDIR)/installwatch
