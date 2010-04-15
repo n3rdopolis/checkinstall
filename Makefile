@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6.1.3 2006/11/01 07:45:28 izto Exp $
+# $Id: Makefile,v 1.6.2.1 2008/11/09 07:48:18 izto Exp $
 
 # Where to install.
 PREFIX=/usr/local
@@ -19,11 +19,11 @@ all:
 			;; \
 		esac ; \
 	done	
-	make -C installwatch-0.7.0beta5
+	$(MAKE) -C installwatch
 	
 install: all
 	export
-	make -C installwatch-0.7.0beta5 install
+	$(MAKE) -C installwatch install
 	
 	mkdir -p $(BINDIR)
 	install checkinstall makepak $(BINDIR)
@@ -58,4 +58,4 @@ clean:
 	for file in locale/checkinstall-*.mo ; do \
 		rm -f $${file} ; \
 	done
-	make -C installwatch-0.7.0beta5 clean
+	$(MAKE) -C installwatch clean
