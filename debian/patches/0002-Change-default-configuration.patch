@@ -3,11 +3,11 @@ Date: Thu, 15 Apr 2010 14:47:37 -0400
 Subject: [PATCH] Change default configuration
 
 ---
- checkinstallrc-dist |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
+ checkinstallrc-dist |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/checkinstallrc-dist b/checkinstallrc-dist
-index d4feb4e..d9bbb4b 100644
+index d4feb4e..e2d762d 100644
 --- a/checkinstallrc-dist
 +++ b/checkinstallrc-dist
 @@ -16,7 +16,7 @@
@@ -58,18 +58,16 @@ index d4feb4e..d9bbb4b 100644
  
  # Automatically strip all ELF binaries?
  STRIP_ELF=1
-@@ -108,7 +108,9 @@ BACKUP=1
+@@ -108,7 +108,7 @@ BACKUP=1
  AUTODOINST=1
  
  # Are we going to use filesystem translation?
 -TRANSLATE=1            
-+# Note: checkinstall, as of 1.6.1 doesn't handle the at family of syscalls.
-+# This means that translation doesn't work as coreutils uses them.
-+TRANSLATE=0
++TRANSLATE=1
  
  # Reset the owner/group of all files to root.root?
  RESET_UIDS=0               
-@@ -136,4 +138,4 @@ REVIEW_SPEC=0
+@@ -136,4 +136,4 @@ REVIEW_SPEC=0
  REVIEW_CONTROL=0
        
  # Install the package or just create it?
