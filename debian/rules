@@ -33,15 +33,15 @@ override_dh_auto_install:
 	
 	# installwatch's documentation
 	mkdir -p $(TMPDIR)/usr/share/doc/checkinstall
-	gzip -9c installwatch-0.7.0beta5/CHANGELOG \
+	gzip -9c installwatch/CHANGELOG \
 		> $(TMPDIR)/usr/share/doc/checkinstall/installwatch.changelog.gz
 	gzip -9c debian/changelog.installwatch.old \
 		> $(TMPDIR)/usr/share/doc/checkinstall/installwatch.changelog.Debian.gz
-	cp installwatch-0.7.0beta5/BUGS \
+	cp installwatch/BUGS \
 		$(TMPDIR)/usr/share/doc/checkinstall/BUGS.installwatch
-	cp installwatch-0.7.0beta5/README \
+	cp installwatch/README \
 		$(TMPDIR)/usr/share/doc/checkinstall/README.installwatch
-	cp installwatch-0.7.0beta5/TODO \
+	cp installwatch/TODO \
 		$(TMPDIR)/usr/share/doc/checkinstall/TODO.installwatch
 	
 	# Modifications to the programs/config are applied here
