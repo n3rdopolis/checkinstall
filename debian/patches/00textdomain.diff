@@ -1,12 +1,12 @@
 Index: checkinstall/checkinstall
 ===================================================================
---- checkinstall.orig/checkinstall	2008-06-25 18:20:06.000000000 -0400
-+++ checkinstall/checkinstall	2008-06-25 18:22:30.000000000 -0400
-@@ -45,7 +45,7 @@
- 
+--- checkinstall.orig/checkinstall	2010-04-15 14:04:53.000000000 -0400
++++ checkinstall/checkinstall	2010-04-15 14:07:54.000000000 -0400
+@@ -65,7 +65,7 @@
+ INSTALLDIR=`dirname "$INSTALLDIR"`/..
  
  # gettext variables
--export TEXTDOMAINDIR=/usr/local/lib/checkinstall/locale
+-export TEXTDOMAINDIR="$INSTALLDIR"/lib/checkinstall/locale
 +export TEXTDOMAINDIR=/usr/share/locale
  export TEXTDOMAIN=checkinstall
  

@@ -1,21 +1,13 @@
 Index: checkinstall/checkinstall
 ===================================================================
---- checkinstall.orig/checkinstall	2008-06-25 18:22:30.000000000 -0400
-+++ checkinstall/checkinstall	2008-06-25 18:22:44.000000000 -0400
-@@ -386,13 +386,13 @@
+--- checkinstall.orig/checkinstall	2010-04-15 14:07:54.000000000 -0400
++++ checkinstall/checkinstall	2010-04-15 14:08:54.000000000 -0400
+@@ -492,7 +492,7 @@
  ckversion
  echo
  
--if ! [ -f /usr/local/lib/checkinstall/checkinstallrc ]; then
--   echog "The checkinstallrc file was not found at:\n/usr/local/lib/checkinstall/checkinstallrc"
-+if ! [ -f /etc/checkinstallrc ]; then
-+   echog "The checkinstallrc file was not found at:\n/etc/checkinstallrc"
+-CHECKINSTALLRC=${CHECKINSTALLRC:-${INSTALLDIR}/checkinstallrc}
++CHECKINSTALLRC=${CHECKINSTALLRC:-/etc/checkinstallrc}
+ if ! [ -f $CHECKINSTALLRC ]; then
+    echog "The checkinstallrc file was not found at:\n$CHECKINSTALLRC"
     echo
-    echog "Assuming default values."
- else
- # Get our default settings from the rc file
--source /usr/local/lib/checkinstall/checkinstallrc
-+source /etc/checkinstallrc
- fi
- 
- 
