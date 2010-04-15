@@ -1,7 +1,15 @@
-Index: checkinstall/checkinstallrc-dist
-===================================================================
---- checkinstall.orig/checkinstallrc-dist	2008-06-25 22:28:59.000000000 -0400
-+++ checkinstall/checkinstallrc-dist	2008-06-25 23:35:38.000000000 -0400
+From: Felipe Sateler <fsateler@gmail.com>
+Date: Thu, 15 Apr 2010 14:47:37 -0400
+Subject: [PATCH] Change default configuration
+
+---
+ checkinstallrc-dist |   20 +++++++++++---------
+ 1 files changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/checkinstallrc-dist b/checkinstallrc-dist
+index d4feb4e..d9bbb4b 100644
+--- a/checkinstallrc-dist
++++ b/checkinstallrc-dist
 @@ -16,7 +16,7 @@
  DEBUG=0
  
@@ -11,7 +19,7 @@ Index: checkinstall/checkinstallrc-dist
  INSTALLWATCH=${INSTALLWATCH_PREFIX}/bin/installwatch
  
  # Location of the makepkg program. "makepak" is the default, and is 
-@@ -39,7 +39,7 @@
+@@ -39,7 +39,7 @@ SHOW_MAKEPKG=0
  BASE_TMP_DIR=/var/tmp   ##  Don't set this to /tmp or / !! 
  
  # Where to place the installed document files
@@ -20,7 +28,7 @@ Index: checkinstall/checkinstallrc-dist
  
  # Default architecture type (Leave it empty to allow auto-guessing)
  ARCHITECTURE=""
-@@ -49,7 +49,7 @@
+@@ -49,7 +49,7 @@ ARCHITECTURE=""
  #   R : RPM
  #   D : Debian
  
@@ -29,7 +37,7 @@ Index: checkinstall/checkinstallrc-dist
  
  # Storage directory for newly created packages
  # By default they will be stored at the default
-@@ -72,16 +72,16 @@
+@@ -72,16 +72,16 @@ SHOW_INSTALL=1
  
  # Show Slackware package installation script while it runs? Again, useful if
  # it's an interactive script
@@ -50,7 +58,7 @@ Index: checkinstall/checkinstallrc-dist
  
  # Automatically strip all ELF binaries?
  STRIP_ELF=1
-@@ -108,7 +108,9 @@
+@@ -108,7 +108,9 @@ BACKUP=1
  AUTODOINST=1
  
  # Are we going to use filesystem translation?
@@ -61,9 +69,10 @@ Index: checkinstall/checkinstallrc-dist
  
  # Reset the owner/group of all files to root.root?
  RESET_UIDS=0               
-@@ -136,4 +138,4 @@
+@@ -136,4 +138,4 @@ REVIEW_SPEC=0
  REVIEW_CONTROL=0
        
  # Install the package or just create it?
 -INSTALL=0
 +INSTALL=1
+-- 
