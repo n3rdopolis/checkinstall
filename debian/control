@@ -5,7 +5,6 @@ Maintainer: Felipe Sateler <fsateler@gmail.com>
 Build-Depends: debhelper (>= 7.0.50~),
  gettext,
  docbook-to-man,
- quilt (>= 0.46-7),
  libc6-dev (>=2.10) [i386 amd64 armel hppa mips mipsel powerpc s390 sparc],
  libc0.1-dev (>= 2.10) [kfreebsd-i386 kfreebsd-amd64],
  libc0.3 (>=2.10) [hurd-i386],

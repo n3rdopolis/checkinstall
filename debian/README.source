@@ -1,3 +1,0 @@
-This package uses quilt to manage patches. For reference on how to use
-quilt for package management, see /usr/share/doc/quilt/README.source in the
-quilt package.
