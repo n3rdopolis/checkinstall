@@ -16,9 +16,6 @@ override_dh_auto_clean:
 	rm -f debian/checkinstall.8
 	rm -f debian/installwatch.1
 
-override_dh_clean:
-	dh_clean -Xinstallwatch.c.rej
-
 TMPDIR=$(CURDIR)/debian/tmp
 override_dh_auto_install:
 	# We override all paths: we want the binary in bin instead of
