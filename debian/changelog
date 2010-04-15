@@ -1,8 +1,17 @@
-checkinstall (1.6.2-1) UNRELEASED; urgency=low
+checkinstall (1.6.2-1) unstable; urgency=low
 
-  * New upstream release
+  * New upstream release. Closes: #570510
+    - Update patches for new upstream release
+  * Manage patches with gpb-pq
+  * Update Standards-Version (no changes needed)
+  * Switch to source format 3.0 (quilt)
+    - Drop quilt usage
+  * Drop unnecessary dh_clean override
+  * Use multiline Build-Depends
+  * Re-enable filesystem translation by default, it was fixed upstream.
+      Closes: #510681, #490633, #478312
 
- -- Felipe Sateler <fsateler@gmail.com>  Thu, 15 Apr 2010 14:05:12 -0400
+ -- Felipe Sateler <fsateler@gmail.com>  Thu, 15 Apr 2010 16:21:45 -0400
 
 checkinstall (1.6.1-10) unstable; urgency=low
 
