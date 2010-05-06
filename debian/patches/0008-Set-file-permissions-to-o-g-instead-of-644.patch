@@ -1,0 +1,34 @@
+From: Reuben Thomas <rrt@sc3d.org>
+Date: Thu, 6 May 2010 18:05:53 -0400
+Subject: [PATCH] Set file permissions to o=g instead of 644
+
+When --reset-uids is passed, match world permissions with group
+permissions instead of forcing 644 for everything. This is mainly to
+protect agains build systems that do not take more restrictive umasks
+into account.
+---
+ checkinstall |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/checkinstall b/checkinstall
+index aeae91e..5f40d7d 100755
+--- a/checkinstall
++++ b/checkinstall
+@@ -176,7 +176,7 @@ function usage() {
+    echog "--stripso=<yes|no>             Strip any ELF binary libraries (.so files)" 
+    echog "--addso=<yes|no>               Search for any shared libs and add"
+    echog "                               them to /etc/ld.so.conf"
+-   echog "--reset-uids=<yes|no>          Reset perms for all files/dirs to 755 and"
++   echog "--reset-uids=<yes|no>          Reset perms for all files to o=g, dirs to 755 and"
+    echog "                               the owner/group for all dirs to root.root"
+    echog "--gzman=<yes|no>               Compress any man pages found inside the package"
+    echog "--docdir=<path>                Where to put documentation files"
+@@ -1793,6 +1793,7 @@ if [ $INSTALL_FAILED -gt 0 ]; then
+ 	if [ $RESET_UIDS -gt 0 ]; then
+ 	   find "$BUILD_DIR" -exec chown root.root {} \;
+ 	   find "$BUILD_DIR" -type d -exec chmod 755 {} \;
++	   find "$BUILD_DIR" -type f -exec chmod o=g {} \;
+ 	fi
+ 
+ 	##############################################################################
+-- 
