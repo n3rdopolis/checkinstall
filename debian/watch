@@ -1,3 +1,4 @@
 version=3
 
-http://checkinstall.izto.org/files/source/checkinstall-([\d\.]*)\.tgz
+http://www.asic-linux.com.mx/~izto/checkinstall/files/source/checkinstall-([\d\.]*)\.tar.gz
+
