@@ -1,3 +1,10 @@
+checkinstall (1.6.2-2) unstable; urgency=low
+
+  * New maintainer (closes: #608238)
+  * Fix broken watch file
+
+ -- Andreas Noteng <andreas@noteng.no>  Sat, 08 Jan 2011 21:50:41 +0100
+
 checkinstall (1.6.2-1) unstable; urgency=low
 
   * New upstream release. Closes: #570510
