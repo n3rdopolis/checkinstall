@@ -1,7 +1,7 @@
 Source: checkinstall
 Section: admin
 Priority: optional
-Maintainer: Felipe Sateler <fsateler@gmail.com>
+Maintainer: Andreas Noteng <andreas@noteng.no>
 Build-Depends: debhelper (>= 7.0.50~),
  gettext,
  docbook-to-man,
@@ -9,7 +9,7 @@ Build-Depends: debhelper (>= 7.0.50~),
  libc0.1-dev (>= 2.10) [kfreebsd-i386 kfreebsd-amd64],
  libc0.3 (>=2.10) [hurd-i386],
  libc6.1-dev (>=2.10) [alpha ia64]
-Standards-Version: 3.8.4
+Standards-Version: 3.9.1
 Vcs-Git: git://git.debian.org/git/collab-maint/checkinstall.git
 Vcs-Browser: http://git.debian.org/?p=collab-maint/checkinstall.git;a=summary
 Homepage: http://checkinstall.izto.org
@@ -19,8 +19,6 @@ Architecture: any
 Depends: ${shlibs:Depends}, file, dpkg-dev, ${misc:Depends}
 Recommends: make
 Suggests: gettext
-Replaces: installwatch
-Conflicts: installwatch
 Description: installation tracker
  CheckInstall keeps track of all the files created or
  modified by your installation script ("make install"
