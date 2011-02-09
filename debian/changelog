@@ -1,12 +1,17 @@
 checkinstall (1.6.2-2) unstable; urgency=low
 
+  [ Andreas Noteng ]
   * New maintainer (closes: #608238)
   * Fix broken watch file
   * Change to machine readable copyright file
   * Update Standards-Version (no change).
   * Remove Breaks: and Replaces: installwatch (package no longer in Debian)
+  * Fix wrong installwatch copyright information
 
- -- Andreas Noteng <andreas@noteng.no>  Sat, 08 Jan 2011 21:50:41 +0100
+  [ Felipe Sateler ]
+  * Set file permissions to o=g instead of 644 when --reset-uids is passed
+
+ -- Felipe Sateler <fsateler@debian.org>  Wed, 09 Feb 2011 15:51:28 -0300
 
 checkinstall (1.6.2-1) unstable; urgency=low
 
