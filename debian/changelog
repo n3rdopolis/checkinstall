@@ -3,8 +3,9 @@ checkinstall (1.6.2-3) unstable; urgency=low
   * Don't include empty control fields (closes: #666262)
   * Update Standards-Version
     - Update debian/copyright to version 1.0
+  * Don't include directories in conffiles (closes: #655453)
 
- -- Andreas Noteng <andreas@noteng.no>  Sun, 01 Apr 2012 17:12:12 +0200
+ -- Andreas Noteng <andreas@noteng.no>  Sun, 01 Apr 2012 18:22:33 +0200
 
 checkinstall (1.6.2-2) unstable; urgency=low
 
