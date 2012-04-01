@@ -6,3 +6,4 @@
 0006-Remove-backticks-from-message.patch
 0007-Drop-cases-for-glibc-2.4.patch
 0008-Set-file-permissions-to-o-g-instead-of-644.patch
+0009-Dont-add-empty-control-fields.patch

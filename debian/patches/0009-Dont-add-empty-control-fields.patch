@@ -1,0 +1,11 @@
+--- a/checkinstall
++++ b/checkinstall
+@@ -2563,7 +2563,7 @@
+ 
+ mkdir $BUILD_DIR/DEBIAN
+ 
+-cat << EOF >> $BUILD_DIR/DEBIAN/control
++cat << EOF | sed "s/ $//" | egrep ": " >> $BUILD_DIR/DEBIAN/control
+ Package: $PKG_BASENAME
+ Priority: extra
+ Section: $PKG_GROUP

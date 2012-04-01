@@ -1,4 +1,4 @@
-Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Checkinstall
 Upstream-Contact: Felipe Eduardo Sánchez Díaz Durán <izto@asic-linux.com.mx>
 Source: http://www.asic-linux.com.mx/~izto/checkinstall/index.php
@@ -14,7 +14,7 @@ Licence: GPL-2+
 
 Files: debian/*
 Copyright: 2006-2010, Felipe Sateler <fsateler@gmail.com>
-           2011, Andreas Noteng <andreas@noteng.no>
+           2011-2012, Andreas Noteng <andreas@noteng.no>
 License: GPL-2+
 
 License: GPL-2
