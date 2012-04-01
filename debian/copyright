@@ -10,7 +10,7 @@ License: GPL-2+
 Files: installwatch/*
 Copyright: 1998, Pancrazio de Mauro <p@demauro.net>
            1998-2006, Felipe Eduardo Sánchez Díaz Durán <izto@asic-linux.com.mx>
-Licence: GPL-2+
+License: GPL-2+
 
 Files: debian/*
 Copyright: 2006-2010, Felipe Sateler <fsateler@gmail.com>
