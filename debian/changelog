@@ -1,3 +1,9 @@
+checkinstall (1.6.2-4) UNRELEASED; urgency=low
+
+  * Fix wrong license name in debian/copyright (s/GPL2/GPL2+/)
+
+ -- Andreas Noteng <andreas@noteng.no>  Sun, 20 May 2012 18:17:39 +0200
+
 checkinstall (1.6.2-3) unstable; urgency=low
 
   * Don't include empty control fields (closes: #666262)

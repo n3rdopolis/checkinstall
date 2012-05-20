@@ -1,6 +1,6 @@
-usr/bin/checkinstall
 etc/checkinstallrc
-usr/share/doc/*
-usr/share/locale/*/LC_MESSAGES/checkinstall.mo
+usr/bin/checkinstall
 usr/bin/installwatch
 usr/lib/checkinstall/installwatch.so
+usr/share/doc/*
+usr/share/locale/*/LC_MESSAGES/checkinstall.mo
