@@ -8,3 +8,4 @@
 0008-Set-file-permissions-to-o-g-instead-of-644.patch
 0009-Dont-add-empty-control-fields.patch
 0010-Dont-include-dirs-in-conffiles.patch
+0011-fix-crash-when-sizeof-mode_t-sizeof-int.patch
