@@ -1,13 +1,13 @@
-checkinstall (1.6.2-4) UNRELEASED; urgency=low
+checkinstall (1.6.2-4) unstable; urgency=low
 
   [ Andreas Noteng ]
   * Fix wrong license name in debian/copyright (s/GPL2/GPL2+/)
 
   [ Timo Juhani Lindfors ]
   * Add patch 0011-fix-crash-when-sizeof-mode_t-sizeof-int.patch
-    (closes #702314)
+    (closes: #702314)
 
- -- Andreas Noteng <andreas@noteng.no>  Sun, 20 May 2012 18:17:39 +0200
+ -- Andreas Noteng <andreas@noteng.no>  Fri, 08 Mar 2013 09:40:43 +0100
 
 checkinstall (1.6.2-3) unstable; urgency=low
 
