@@ -1,10 +1,10 @@
 #!/bin/bash
 ##############################################################################
-#         $Id: checkinstall,v 1.6.2.17 2009/12/26 13:15:21 izto Exp $ 
+#         $Id: checkinstall,v 1.7.0.00 2016/10/28 17:01:21 izto Exp $
 #                           ########################                         
 #                                                                            
 #
-#                             CheckInstall v1.6.2
+#                             CheckInstall v1.7.0
 #
 #  Installs a compiled program from the program's source directory using     
 #  "make install" or any other command supplied on checkinstall's command  
@@ -38,7 +38,7 @@
 # Trap the INT signal (ctrl-c, for example)
 trap trapint 2
 
-CHECKINSTALL_VERSION=1.6.2
+CHECKINSTALL_VERSION=1.7.0
 
 # locate the file or directory that the parameter corresponds to;
 # always prints absolute path
@@ -72,6 +72,17 @@ export TEXTDOMAIN=checkinstall
 DIRECTORIO_FUENTE=`pwd`
 PKG_BASENAME="`basename "$DIRECTORIO_FUENTE"`"
 SPEC_PATH=${PKG_BASENAME}.spec
+
+HASOVERLAYFS=$(grep -c overlay$ /proc/filesystems)
+if [[ $HASOVERLAYFS == 0 ]]
+then
+  HASOVERLAYFSMODULE=$(modprobe -n overlay; echo $?)
+  if [[ $HASOVERLAYFSMODULE == 0 ]]
+  then
+    HASOVERLAYFS=1
+  fi
+fi
+export HASOVERLAYFS
 
 #############################################################################
                            # Function definitions #
@@ -135,7 +146,7 @@ function usage() {
    echog "*Install options*"
    echo
    echog "--install=<yes|no>             Toggle created package installation"
-   echog "--fstrans=<yes|no>             Enable/disable the filesystem translation code"
+   echog "--fstrans=<yes|no>             Enable/disable the filesystem translation code, for non-overlayfs systems"
    echo
    echog "*Scripting options*"
    echo
@@ -932,6 +943,11 @@ shift
 
 # Are we going to use filesystem translation?
 ! [ "$TRANSLATE" ] && TRANSLATE=1
+if [[ $HASOVERLAYFS == 1 ]]
+then
+  echo "Legacy fstrans not being used, system supports overlayfs"
+  TRANSLATE=0
+fi
 
 # Reset the owner/group of all files to root.root?
 ! [ "$RESET_UIDS" ] && RESET_UIDS=0
@@ -1510,6 +1526,22 @@ TMP_SCRIPT=${TMP_DIR}/installscript.sh
 cat << EOF > $TMP_SCRIPT
 #!/bin/sh
 
+#Setup a union mount, if supported
+if [ $HASOVERLAYFS -eq 1 ]
+then
+  mkdir "${TMP_DIR}/TRANSL"
+  mkdir "${TMP_DIR}/workdir"
+  mkdir "${TMP_DIR}/uniondir"
+  mount --make-rprivate /
+  MOUNTS=\$(findmnt -lUno TARGET|sort)
+  mount -t overlay overlay -o lowerdir=/,upperdir="${TMP_DIR}/TRANSL",workdir="${TMP_DIR}/uniondir" "${TMP_DIR}/workdir"
+  echo "\$MOUNTS" | grep -v ^/$ | while read MOUNT
+  do
+    mount --bind "\$MOUNT" "${TMP_DIR}/workdir/\$MOUNT"
+  done
+  pivot_root "${TMP_DIR}/workdir" "${TMP_DIR}/workdir/${TMP_DIR}/uniondir"
+fi
+
 cd "$DIRECTORIO_FUENTE"
 EOF
 
@@ -1545,10 +1577,14 @@ IEXCLUDE="${DIRECTORIO_FUENTE},/dev,/proc,/tmp,/var/tmp"
 # to do so in the configuration section (see the SHOW_INSTALL switch above)
 INSTALL_FAILED=0
 if [ $SHOW_INSTALL -eq 0 ]; then
-
-   $INSTALLWATCH --logfile=${TMP_DIR}/newfiles.tmp --exclude="${IEXCLUDE}" \
-   --root=${TMP_DIR} --transl=${TRANSLATE} --backup=${BACKUP} --dbglvl=$DEBUG\
-   $TMP_SCRIPT &> /${TMP_DIR}/install.log
+   if [[ $HASOVERLAYFS == 0 ]]
+   then
+    $INSTALLWATCH --logfile=${TMP_DIR}/newfiles.tmp --exclude="${IEXCLUDE}" \
+    --root=${TMP_DIR} --transl=${TRANSLATE} --backup=${BACKUP} --dbglvl=$DEBUG\
+    $TMP_SCRIPT &> /${TMP_DIR}/install.log
+   else
+    unshare -f -m $TMP_SCRIPT &> /${TMP_DIR}/install.log
+   fi
 
    okfail
    INSTALL_FAILED=$?
@@ -1556,9 +1592,14 @@ else
    echo
    echo
    echog "========================= Installation results ==========================="
-   $INSTALLWATCH --logfile=${TMP_DIR}/newfiles.tmp --exclude="${IEXCLUDE}" \
-   --root=${TMP_DIR} --transl=${TRANSLATE} --backup=${BACKUP} --dbglvl=$DEBUG\
-   $TMP_SCRIPT 2>&1
+   if [[ $HASOVERLAYFS == 0 ]]
+   then
+    $INSTALLWATCH --logfile=${TMP_DIR}/newfiles.tmp --exclude="${IEXCLUDE}" \
+    --root=${TMP_DIR} --transl=${TRANSLATE} --backup=${BACKUP} --dbglvl=$DEBUG\
+    $TMP_SCRIPT 2>&1
+   else
+    unshare -f -m $TMP_SCRIPT 2>&1
+   fi
    if [ $? -eq 0 ]; then 
       echo
       echog "======================== Installation successful =========================="
@@ -1595,12 +1636,11 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	   exit $INSTALL_FAILED
 	fi
 
-	# If translation was active, the installed files are under /transl
+	# If translation was active, the installed files are under TRANSL/
 	TRANSLROOT="/"
-	if [ "${TRANSLATE}" = "1" ]; then
+	if [[ "${TRANSLATE}" == "1" || $HASOVERLAYFS == 1 ]]; then
 		TRANSLROOT="${TMP_DIR}/TRANSL"
 	fi
-
 
 	# Copy the documentation files           
 
@@ -1628,38 +1668,41 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	fi
 
+	#If using overlayfs, make a newfiles.tmp file
+        if [[ $HASOVERLAYFS == 1 ]]
+        then
+          find "${TMP_DIR}/TRANSL" > /${TMP_DIR}/newfiles.tmp
 
-	#
-	# Extract the relevant files from the modified files list
-	#
+        else
+	  #
+	  # Extract the relevant files from the modified files list
+	  #
+	  # Find regular files first
+	  [ $DEBUG -gt 0 ] && echo "debug: BASE_TMP_DIR: $BASE_TMP_DIR"
+	  cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 3 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | sort -u > /${TMP_DIR}/newfiles
 
-	# Find regular files first
-	[ $DEBUG -gt 0 ] && echo "debug: BASE_TMP_DIR: $BASE_TMP_DIR"
-	cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 3 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | sort -u > /${TMP_DIR}/newfiles
+	  # symlinks are next
+	  cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 4 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | grep -v "#success" | sort -u  >> /${TMP_DIR}/newfiles
+          # Create another list of modified files that exclude all files the
+          # install script wanted to create but did not, e.g because they already
+          # existed.
+          egrep "#success$" /${TMP_DIR}/newfiles.tmp | cut -f 3 | sort -u \
+              >/${TMP_DIR}/modified
+          egrep "#success$" /${TMP_DIR}/newfiles.tmp | cut -f 4 \
+              | egrep -v "#success" | sort -u >> /${TMP_DIR}/modified
 
-	# symlinks are next
-	cat /${TMP_DIR}/newfiles.tmp | egrep -v '^[-0-9][0-9]*[[:space:]]*(unlink|access)' | cut -f 4 | egrep -v "^(/dev|$BASE_TMP_DIR|/tmp)" | grep -v "#success" | sort -u  >> /${TMP_DIR}/newfiles
-        # Create another list of modified files that exclude all files the
-        # install script wanted to create but did not, e.g because they already
-        # existed.
-        egrep "#success$" /${TMP_DIR}/newfiles.tmp | cut -f 3 | sort -u \
-            >/${TMP_DIR}/modified
-        egrep "#success$" /${TMP_DIR}/newfiles.tmp | cut -f 4 \
-            | egrep -v "#success" | sort -u >> /${TMP_DIR}/modified
-
-	# OK, now we clean it up a bit
-	mv /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/newfiles.installwatch
-	sort -u <  /${TMP_DIR}/newfiles | uniq  | while read file; do
-	   if [ -e "${TRANSLROOT}${file}" ]; then
-	      echo $file >> /${TMP_DIR}/newfiles.tmp
-	   else
-	      FILE_SYM=`file "${TRANSLROOT}${file}" | grep 'symbolic link'`
-	      [ "${FILE_SYM}" != "" ] && echo $file >> /${TMP_DIR}/newfiles.tmp
-	   fi
-	done
-
+	  # OK, now we clean it up a bit
+	  mv /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/newfiles.installwatch
+	  sort -u <  /${TMP_DIR}/newfiles | uniq  | while read file; do
+	     if [ -e "${TRANSLROOT}${file}" ]; then
+	        echo $file >> /${TMP_DIR}/newfiles.tmp
+	     else
+	        FILE_SYM=`file "${TRANSLROOT}${file}" | grep 'symbolic link'`
+	        [ "${FILE_SYM}" != "" ] && echo $file >> /${TMP_DIR}/newfiles.tmp
+	     fi
+	  done
+	fi
 	cp /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/newfiles
-
 	# Don't include anything under the directories specified with "--exclude"
 
 	[ $DEBUG -gt 0 ] && echo "debug: EXCLUDE=$EXCLUDE"
