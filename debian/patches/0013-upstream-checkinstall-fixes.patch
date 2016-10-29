@@ -1,0 +1,83 @@
+diff --git a/checkinstall b/checkinstall
+--- a/checkinstall
++++ b/checkinstall
+@@ -61,8 +61,7 @@
+     fi
+ }
+ 
+-INSTALLDIR=`followlinks "$0"`
+-INSTALLDIR=`dirname "$INSTALLDIR"`/..
++INSTALLDIR=MAKEFILE_PREFIX
+ 
+ # gettext variables
+ export TEXTDOMAINDIR="$INSTALLDIR"/lib/checkinstall/locale
+@@ -401,6 +400,13 @@
+    RES=`egrep "$1" < ${SPEC_PATH} \
+     | cut -f2 -d: | sed 's/^ *//g' | sed 's/ *$//g' `
+    shift
++   while echo "$RES" | egrep -q '(^|[^%])%[a-zA-Z0-9]'; do
++      VAR=`echo "$RES" | sed 's/\(^\|^.*[^%]\)%\([a-zA-Z0-9]*\).*$/\2/'`
++      egrep -q "^%define\s+$VAR\s" < ${SPEC_PATH} || break
++      VAL=`egrep "^%define\s+$VAR\s" < ${SPEC_PATH} \
++	 | awk '{ print $3 }'`
++      RES=`echo "$RES" | sed 's/\(^\|[^%]\)%'"$VAR/"'\1'"$VAL/g"`
++   done
+    echo "$RES" | sed 's/^ *//g' | sed 's/ *$//g' 
+ 
+ }
+@@ -466,7 +472,7 @@
+     # Only use tar if there are parents
+     echo "${files}" | egrep '[^[:space:]]' >/dev/null
+     if [ $? -eq 0 ]; then
+-        if [ deref_parents -eq 1 ]; then
++        if [ $deref_parents -eq 1 ]; then
+             # Add the -h option to the tar command for dereferencing
+             $TAR --no-recursion -C "${root}" -cphf - $files | $TAR -f - -xvpC \
+                 "${dest}"
+@@ -506,7 +512,7 @@
+ # Arguments parsing
+ 
+ CKNAME=`basename "$0"`
+-PARAMS=`getopt -a -n $CKNAME -o +d:DA:t:RShHy -l arch:,type:,si,showinstall::,ss,showslack::,deldoc::,delspec::,deldesc::,strip::,addso::,install::,stripso::,gzman::,bk,backup::,autodoinst::,reset-uids::,fstrans::,spec:,exclude:,include:,pkgname:,pkgversion:,pkgrelease:,pkglicense:,pkggroup:,pkgsource:,pkgaltsource:,pakdir:,docdir:,requires:,provides:,conflicts:,replaces:,maintainer:,dpkgflags:,rpmflags:,pkgarch:,umask:,with-tar:,inspect,review-spec,review-control,newslack,help,nodoc,rpmi,rpmu,version,copyright,default -- "$@"`
++PARAMS=`getopt -a -n $CKNAME -o +d:DA:t:RShHy -l arch:,type:,si,showinstall::,ss,showslack::,deldoc::,delspec::,deldesc::,strip::,addso::,install::,stripso::,gzman::,bk,backup::,autodoinst::,reset-uids::,fstrans::,spec:,exclude:,include:,pkgname:,pkgversion:,pkgrelease:,pkglicense:,pkggroup:,pkgsource:,pkgaltsource:,pakdir:,docdir:,requires:,provides:,conflicts:,replaces:,maintainer:,dpkgflags:,rpmflags:,pkgarch:,umask:,with-tar:,summary:,inspect,review-spec,review-control,newslack,help,nodoc,rpmi,rpmu,version,copyright,default -- "$@"`
+ 
+ [ $? -gt 0 ] && help_notice
+ 
+@@ -573,6 +579,10 @@
+          shift
+          TAR=`eval echo $1`
+          ;;
++      --summary)
++         shift
++         SUMMARY=`eval echo $1`
++         ;;
+       --docdir)
+          shift
+          DOC_DIR=`eval echo $1`
+@@ -2187,14 +2197,14 @@
+ export TAR
+ 
+ if [ $SHOW_MAKEPKG -gt 0 ]; then
+-   $MAKEPKG $MAKEPKG_FLAGS "${SLACK_PKG_BASENAME}.tgz"
++   $MAKEPKG $MAKEPKG_FLAGS ${TMP_DIR}/"${SLACK_PKG_BASENAME}.tgz"
+    okfail
+ else
+-   $MAKEPKG $MAKEPKG_FLAGS "${SLACK_PKG_BASENAME}.tgz" &> /dev/null
++   $MAKEPKG $MAKEPKG_FLAGS ${TMP_DIR}/"${SLACK_PKG_BASENAME}.tgz" &> /dev/null
+    okfail
+ fi
+ 
+-mv "${SLACK_PKG_BASENAME}.tgz" "$DIRECTORIO_FUENTE"
++mv ${TMP_DIR}/"${SLACK_PKG_BASENAME}.tgz" "$DIRECTORIO_FUENTE"
+ 
+ #
+ # If requested, we install the package to register it in Slackware's
+@@ -2572,7 +2582,7 @@
+ cat << EOF >> $BUILD_DIR/DEBIAN/control
+ Package: $PKG_BASENAME
+ Priority: extra
+-Section: $PKG_GROUP
++Section: $(echo $PKG_GROUP | tr '\n' ' ')
+ Installed-Size: `du -s $BUILD_DIR | awk '{print $1}'`
+ Maintainer: $MAINTAINER
+ Architecture: $ARCHITECTURE
