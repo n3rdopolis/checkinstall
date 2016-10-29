@@ -1678,16 +1678,11 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	#If using overlayfs, make a newfiles.tmp file
         if [[ $HASOVERLAYFS == 1 ]]
         then
-
           OLDPWD="$PWD"
           cd "${TMP_DIR}/TRANSL"
           find . | sed 's/^\.//g' > /${TMP_DIR}/newfiles.tmp 2>/dev/null
           cp /${TMP_DIR}/newfiles.tmp /${TMP_DIR}/modified
           cd "$OLDPWD"
-          if [[ $BACKUP == 1 ]]
-          then
-            :
-          fi
         else
 	  #
 	  # Extract the relevant files from the modified files list
@@ -1786,6 +1781,24 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	fi
 
+	#fstrans handles the creation of the backup folder
+	#On overlayfs systems, this has to be handled by checkinstall
+        if [[ $HASOVERLAYFS == 1 && $BACKUP == 1 ]]
+        then
+          mkdir "/${TMP_DIR}/BACKUP"
+          cat "/${TMP_DIR}/newfiles" | while read File
+          do
+            if [[ -e "$File" && ! -d "$File" ]]
+            then
+              FileDir=$(dirname "$File" 2> /dev/null)
+              if [[ -e "$File" && -e "/${TMP_DIR}/TRANSL/$File" ]]
+              then
+                mkdir -p "/${TMP_DIR}/BACKUP/$FileDir"
+                cp -a "$File" "/${TMP_DIR}/BACKUP/$File"
+              fi
+            fi
+          done
+        fi
 
 	# Copy the files to the temporary directory
 	#
