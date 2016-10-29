@@ -1,17 +1,7 @@
 diff --git a/checkinstall b/checkinstall
 --- a/checkinstall
 +++ b/checkinstall
-@@ -61,8 +61,7 @@
-     fi
- }
- 
--INSTALLDIR=`followlinks "$0"`
--INSTALLDIR=`dirname "$INSTALLDIR"`/..
-+INSTALLDIR=MAKEFILE_PREFIX
- 
- # gettext variables
- export TEXTDOMAINDIR="$INSTALLDIR"/lib/checkinstall/locale
-@@ -401,6 +400,13 @@
+@@ -401,6 +401,13 @@
     RES=`egrep "$1" < ${SPEC_PATH} \
      | cut -f2 -d: | sed 's/^ *//g' | sed 's/ *$//g' `
     shift
@@ -25,7 +15,7 @@ diff --git a/checkinstall b/checkinstall
     echo "$RES" | sed 's/^ *//g' | sed 's/ *$//g' 
  
  }
-@@ -466,7 +472,7 @@
+@@ -466,7 +473,7 @@
      # Only use tar if there are parents
      echo "${files}" | egrep '[^[:space:]]' >/dev/null
      if [ $? -eq 0 ]; then
@@ -34,7 +24,7 @@ diff --git a/checkinstall b/checkinstall
              # Add the -h option to the tar command for dereferencing
              $TAR --no-recursion -C "${root}" -cphf - $files | $TAR -f - -xvpC \
                  "${dest}"
-@@ -506,7 +512,7 @@
+@@ -506,7 +513,7 @@
  # Arguments parsing
  
  CKNAME=`basename "$0"`
@@ -43,7 +33,7 @@ diff --git a/checkinstall b/checkinstall
  
  [ $? -gt 0 ] && help_notice
  
-@@ -573,6 +579,10 @@
+@@ -573,6 +580,10 @@
           shift
           TAR=`eval echo $1`
           ;;
@@ -54,7 +44,7 @@ diff --git a/checkinstall b/checkinstall
        --docdir)
           shift
           DOC_DIR=`eval echo $1`
-@@ -2187,14 +2197,14 @@
+@@ -2187,14 +2198,14 @@
  export TAR
  
  if [ $SHOW_MAKEPKG -gt 0 ]; then
@@ -72,7 +62,7 @@ diff --git a/checkinstall b/checkinstall
  
  #
  # If requested, we install the package to register it in Slackware's
-@@ -2572,7 +2582,7 @@
+@@ -2572,7 +2583,7 @@
  cat << EOF >> $BUILD_DIR/DEBIAN/control
  Package: $PKG_BASENAME
  Priority: extra
