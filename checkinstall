@@ -1681,7 +1681,7 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
           OLDPWD="$PWD"
           cd "${TMP_DIR}/TRANSL"
-          find . | sed 's/\.//g' > /${TMP_DIR}/newfiles.tmp 2>/dev/null
+          find . | sed 's/^\.//g' > /${TMP_DIR}/newfiles.tmp 2>/dev/null
           cd "$OLDPWD"
           if [[ $BACKUP == 1 ]]
           then
