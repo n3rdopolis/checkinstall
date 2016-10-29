@@ -82,6 +82,11 @@ then
     HASOVERLAYFS=1
   fi
 fi
+if [[ $HASOVERLAYFS == 1 && $UID != 0 ]]
+then
+  echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
+  HASOVERLAYFS=0
+fi
 export HASOVERLAYFS
 
 #############################################################################
