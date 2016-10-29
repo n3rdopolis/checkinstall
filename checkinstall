@@ -1057,14 +1057,16 @@ fi
 #############################################################################
 
 
-
-if [ ! -x $INSTALLWATCH ]; then
-   echo
-   echog "I can't find $INSTALLWATCH."
-   echo
-   echog "I can't continue. Either install installwatch or\nmodify the INSTALLWATCH variable in this script,\nthen run checkinstall again."
-   echo
-   exit 1
+if [[ $HASOVERLAYFS == 0 ]]
+then
+  if [ ! -x $INSTALLWATCH ]; then
+     echo
+     echog "I can't find $INSTALLWATCH."
+     echo
+     echog "I can't continue. Either install installwatch or\nmodify the INSTALLWATCH variable in this script,\nthen run checkinstall again."
+     echo
+     exit 1
+  fi
 fi
 
 echo
