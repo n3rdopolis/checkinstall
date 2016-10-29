@@ -950,7 +950,7 @@ shift
 ! [ "$TRANSLATE" ] && TRANSLATE=1
 if [[ $HASOVERLAYFS == 1 ]]
 then
-  echo "Legacy fstrans not being used, system supports overlayfs"
+  echo "overlayfs is being used, fstrans is only needed for systems that don't support overlayfs"
   TRANSLATE=0
 fi
 
