@@ -1678,8 +1678,15 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	#If using overlayfs, make a newfiles.tmp file
         if [[ $HASOVERLAYFS == 1 ]]
         then
-          find "${TMP_DIR}/TRANSL" > /${TMP_DIR}/newfiles.tmp
 
+          OLDPWD="$PWD"
+          cd "${TMP_DIR}/TRANSL"
+          find . | sed 's/\.//g' > /${TMP_DIR}/newfiles.tmp 2>/dev/null
+          cd "$OLDPWD"
+          if [[ $BACKUP == 1 ]]
+          then
+            :
+          fi
         else
 	  #
 	  # Extract the relevant files from the modified files list
