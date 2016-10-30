@@ -87,7 +87,7 @@ then
   echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
   HASOVERLAYFS=0
 fi
-export HASOVERLAYFS
+export HASOVERLAYFS=0
 
 #############################################################################
                            # Function definitions #
@@ -1529,7 +1529,7 @@ fi
 [ $DEBUG -gt 0 ] && echo "debug: CK_INCLUDE_FILE = $CK_INCLUDE_FILE"
 
 TMP_SCRIPT=${TMP_DIR}/installscript.sh
-
+# TODO only / is currently being tracked by the overlayfs! This needs to be fixed
 cat << EOF > $TMP_SCRIPT
 #!/bin/sh
 
