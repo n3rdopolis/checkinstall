@@ -74,6 +74,7 @@ PKG_BASENAME="`basename "$DIRECTORIO_FUENTE"`"
 SPEC_PATH=${PKG_BASENAME}.spec
 
 HASOVERLAYFS=$(grep -c overlay$ /proc/filesystems)
+FSCOUNT=$(findmnt -lUno TARGET |sed 's|$|/|'g |grep -v -e ^/sys/ -ve ^/dev/ -ve ^/proc/ -ve ^/run/ -ve ^// |wc -l)
 if [[ $HASOVERLAYFS == 0 ]]
 then
   HASOVERLAYFSMODULE=$(modprobe -n overlay; echo $?)
@@ -87,7 +88,13 @@ then
   echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
   HASOVERLAYFS=0
 fi
-export HASOVERLAYFS=0
+# TODO Hopefully overlayfs will gain better support for mounting overlayfs branches on top of overlayfs branches...
+if [[ $FSCOUNT > 0 ]]
+then
+  echo "Too many external filesystems mounted for overlayfs mode to work"
+  HASOVERLAYFS=0
+fi
+export HASOVERLAYFS
 
 #############################################################################
                            # Function definitions #
@@ -1529,7 +1536,7 @@ fi
 [ $DEBUG -gt 0 ] && echo "debug: CK_INCLUDE_FILE = $CK_INCLUDE_FILE"
 
 TMP_SCRIPT=${TMP_DIR}/installscript.sh
-# TODO only / is currently being tracked by the overlayfs! This needs to be fixed
+# TODO Hopefully overlayfs will gain better support for mounting overlayfs branches on top of overlayfs branches...
 cat << EOF > $TMP_SCRIPT
 #!/bin/sh
 
