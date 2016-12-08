@@ -1537,7 +1537,7 @@ fi
 
 TMP_SCRIPT=${TMP_DIR}/installscript.sh
 cat << EOF > $TMP_SCRIPT
-#!/bin/sh
+#!/bin/bash
 
 #Setup a union mount, if supported
 if [ $HASOVERLAYFS -eq 1 ]
@@ -1548,12 +1548,14 @@ then
   mount --make-rprivate /
   MOUNTS=\$(findmnt -lUno TARGET|sort)
   #Go through each mount, and create an overlayfs
-  echo "\$MOUNTS" | grep -ve /sys/ -ve /sys$ -ve /proc/ -ve /proc -ve /run/ -ve /run -ve /tmp -ve /tmp/ -ve /dev -ve /dev/ | while read MOUNT
+  echo "\$MOUNTS" | grep -ve /sys/ -ve /sys$ -ve /proc/ -ve /proc$ -ve /run/ -ve /run$ -ve /tmp/ -ve /tmp$ -ve /dev/ -ve /dev$ | while read MOUNT
   do
     WORKDIRNAME=\$RANDOM\$RANDOM\$RANDOM\$RANDOM\$RANDOM
-    mkdir "${TMP_DIR}/uniondirs/\$WORKDIRNAME"
-    mkdir "${TMP_DIR}/workdir/\$MOUNT"
-    mount -t overlay overlay -o lowerdir=$MOUNT,upperdir="${TMP_DIR}/TRANSL/\$MOUNT",workdir="${TMP_DIR}/uniondir/\$WORKDIRNAME" "${TMP_DIR}/workdir/\$MOUNT"
+    mkdir -p "${TMP_DIR}/uniondirs/\$WORKDIRNAME"
+    mkdir -p "${TMP_DIR}/workdir/\$MOUNT"
+    mkdir -p "${TMP_DIR}/TRANSL/\$MOUNT"
+
+    mount -t overlay overlay -o lowerdir="\$MOUNT",upperdir="${TMP_DIR}/TRANSL/\$MOUNT",workdir="${TMP_DIR}/uniondirs/\$WORKDIRNAME" "${TMP_DIR}/workdir/\$MOUNT"
   done
 
   #Bind mount system file systems that should not be within union mounts
@@ -1562,7 +1564,7 @@ then
   mount --rbind /sys   ${TMP_DIR}/workdir/sys
   mount --rbind /run   ${TMP_DIR}/workdir/run
   mount --rbind /tmp   ${TMP_DIR}/workdir/tmp
-  pivot_root "${TMP_DIR}/workdir" "${TMP_DIR}/workdir/${TMP_DIR}/uniondir"
+  pivot_root "${TMP_DIR}/workdir" "${TMP_DIR}/workdir/${TMP_DIR}/uniondirs"
 fi
 
 cd "$DIRECTORIO_FUENTE"
