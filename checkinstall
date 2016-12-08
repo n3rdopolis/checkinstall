@@ -1549,7 +1549,7 @@ then
   mount --make-rprivate /
   MOUNTS=\$(findmnt -lUno TARGET|sort)
   #Go through each mount, and create an overlayfs
-  echo "\$MOUNTS" | grep -ve /sys/ -ve /sys$ -ve /proc/ -ve /proc$ -ve /run/ -ve /run$ -ve /tmp/ -ve /tmp$ -ve /dev/ -ve /dev$ | while read MOUNT
+  echo "\$MOUNTS" | grep -ve ^/sys/ -ve ^/sys$ -ve ^/proc/ -ve ^/proc$ -ve ^/run/ -ve ^/run$ -ve ^/tmp/ -ve ^/tmp$ -ve ^/dev/ -ve ^/dev$ | while read MOUNT
   do
     WORKDIRNAME=\$RANDOM\$RANDOM\$RANDOM\$RANDOM\$RANDOM
     mkdir -p "${TMP_DIR}/uniondirs/\$WORKDIRNAME"
@@ -1565,6 +1565,7 @@ then
   mount --rbind /sys   ${TMP_DIR}/workdir/sys
   mount --rbind /run   ${TMP_DIR}/workdir/run
   mount --rbind /tmp   ${TMP_DIR}/workdir/tmp
+
   pivot_root "${TMP_DIR}/workdir" "${TMP_DIR}/workdir/${TMP_DIR}/uniondirs"
 fi
 
