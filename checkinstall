@@ -88,12 +88,12 @@ then
   echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
   HASOVERLAYFS=0
 fi
-# TODO Hopefully overlayfs will gain better support for mounting overlayfs branches on top of overlayfs branches...
-if [[ $FSCOUNT > 0 ]]
-then
-  echo "Too many external filesystems mounted for overlayfs mode to work"
-  HASOVERLAYFS=0
-fi
+# TODO Overlayfs doesn't support ALL filesystems
+#if [[ $FSCOUNT > 0 ]]
+#then
+#  echo "Too many external filesystems mounted for overlayfs mode to work"
+#  HASOVERLAYFS=0
+#fi
 export HASOVERLAYFS
 
 #############################################################################
@@ -1536,7 +1536,6 @@ fi
 [ $DEBUG -gt 0 ] && echo "debug: CK_INCLUDE_FILE = $CK_INCLUDE_FILE"
 
 TMP_SCRIPT=${TMP_DIR}/installscript.sh
-# TODO Hopefully overlayfs will gain better support for mounting overlayfs branches on top of overlayfs branches...
 cat << EOF > $TMP_SCRIPT
 #!/bin/sh
 
@@ -1545,14 +1544,24 @@ if [ $HASOVERLAYFS -eq 1 ]
 then
   mkdir "${TMP_DIR}/TRANSL"
   mkdir "${TMP_DIR}/workdir"
-  mkdir "${TMP_DIR}/uniondir"
+  mkdir "${TMP_DIR}/uniondirs"
   mount --make-rprivate /
   MOUNTS=\$(findmnt -lUno TARGET|sort)
-  mount -t overlay overlay -o lowerdir=/,upperdir="${TMP_DIR}/TRANSL",workdir="${TMP_DIR}/uniondir" "${TMP_DIR}/workdir"
-  echo "\$MOUNTS" | grep -v ^/$ | while read MOUNT
+  #Go through each mount, and create an overlayfs
+  echo "\$MOUNTS" | grep -ve /sys/ -ve /sys$ -ve /proc/ -ve /proc -ve /run/ -ve /run -ve /tmp -ve /tmp/ -ve /dev -ve /dev/ | while read MOUNT
   do
-    mount --bind "\$MOUNT" "${TMP_DIR}/workdir/\$MOUNT"
+    WORKDIRNAME=\$RANDOM\$RANDOM\$RANDOM\$RANDOM\$RANDOM
+    mkdir "${TMP_DIR}/uniondirs/\$WORKDIRNAME"
+    mkdir "${TMP_DIR}/workdir/\$MOUNT"
+    mount -t overlay overlay -o lowerdir=$MOUNT,upperdir="${TMP_DIR}/TRANSL/\$MOUNT",workdir="${TMP_DIR}/uniondir/\$WORKDIRNAME" "${TMP_DIR}/workdir/\$MOUNT"
   done
+
+  #Bind mount system file systems that should not be within union mounts
+  mount --rbind /dev   ${TMP_DIR}/workdir/dev
+  mount --rbind /proc  ${TMP_DIR}/workdir/proc
+  mount --rbind /sys   ${TMP_DIR}/workdir/sys
+  mount --rbind /run   ${TMP_DIR}/workdir/run
+  mount --rbind /tmp   ${TMP_DIR}/workdir/tmp
   pivot_root "${TMP_DIR}/workdir" "${TMP_DIR}/workdir/${TMP_DIR}/uniondir"
 fi
 
