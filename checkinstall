@@ -89,12 +89,21 @@ then
   HASOVERLAYFS=0
 fi
 # TODO Overlayfs doesn't support ALL filesystems
-# TODO HANDLE BIND MOUNTS
-#if [[ $FSCOUNT > 0 ]]
-#then
-#  echo "Too many external filesystems mounted for overlayfs mode to work"
-#  HASOVERLAYFS=0
-#fi
+
+#Files can be bind mounted, but those bind mounts won't be replicatable with overlayfs
+BINDEDFILES=0
+findmnt -lUno TARGET| sort | while read FILESYSTEM 
+do
+  if [[ -f "$FILESYSTEM" ]] 
+  then
+    echo "$FILESYSTEM is a bind mounted file, this cannot be replicated in an overlayfs, falling back to legacy behaviour"
+    ((BINDEDFILES++))
+  fi
+done
+if [[ $BINDEDFILES > 0 ]]
+then
+  HASOVERLAYFS=0
+fi
 export HASOVERLAYFS
 
 #############################################################################
