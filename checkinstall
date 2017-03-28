@@ -1606,7 +1606,7 @@ echogn "Installing with %s..." "${INSTALLCMD[*]}"
 # installwatch excludes itself some directories, but we put them all here,
 # to be explicit.
 #
-IEXCLUDE="${DIRECTORIO_FUENTE},/dev,/proc,/tmp,/var/tmp"
+IEXCLUDE="${DIRECTORIO_FUENTE},/dev,/proc,/tmp,/var/tmp,/sys,/run"
   
 
 # Run the install command, showing the results interactively if we were asked
