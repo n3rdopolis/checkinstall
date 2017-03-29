@@ -505,33 +505,6 @@ function createtraslationmounts
                       # Function definition ends here #
 #############################################################################
 
-#Detect if overlayfs can be used
-HASOVERLAYFS=$(grep -c overlay$ /proc/filesystems)
-if [[ $HASOVERLAYFS == 0 ]]
-then
-  HASOVERLAYFSMODULE=$(modprobe -n overlay; echo $?)
-  if [[ $HASOVERLAYFSMODULE == 0 ]]
-  then
-    HASOVERLAYFS=1
-  fi
-fi
-if [[ $HASOVERLAYFS == 1 && $UID != 0 ]]
-then
-  echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
-  HASOVERLAYFS=0
-fi
-
-if [[ $HASOVERLAYFS == 1 ]]
-then
-  FILESYSTEMMAP=$(getmountmap)
-  GETMAPRESULT=$?
-fi
-
-if [[ $GETMAPRESULT !=0 ]]
-then
-  HASOVERLAYFS=0
-fi
-
 # Show the version information
 ckversion
 echo
@@ -976,11 +949,6 @@ shift
 
 # Are we going to use filesystem translation?
 ! [ "$TRANSLATE" ] && TRANSLATE=1
-if [[ $HASOVERLAYFS == 1 ]]
-then
-  echo "overlayfs is being used, fstrans is only needed for systems that don't support overlayfs"
-  TRANSLATE=0
-fi
 
 # Reset the owner/group of all files to root.root?
 ! [ "$RESET_UIDS" ] && RESET_UIDS=0
@@ -1036,6 +1004,40 @@ fi
 
 # Show the makepkg program's output?
 ! [ "$SHOW_MAKEPKG" ] && SHOW_MAKEPKG=0
+
+
+#Detect if overlayfs can be used
+HASOVERLAYFS=$(grep -c overlay$ /proc/filesystems)
+if [[ $HASOVERLAYFS == 0 ]]
+then
+  HASOVERLAYFSMODULE=$(modprobe -n overlay; echo $?)
+  if [[ $HASOVERLAYFSMODULE == 0 ]]
+  then
+    HASOVERLAYFS=1
+  fi
+fi
+if [[ $HASOVERLAYFS == 1 && $UID != 0 ]]
+then
+  echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
+  HASOVERLAYFS=0
+fi
+
+if [[ $HASOVERLAYFS == 1 ]]
+then
+  FILESYSTEMMAP=$(getmountmap)
+  GETMAPRESULT=$?
+fi
+
+if [[ $GETMAPRESULT != 0 ]]
+then
+  HASOVERLAYFS=0
+fi
+
+if [[ $HASOVERLAYFS == 1 ]]
+then
+  echo "overlayfs is being used, fstrans is only needed for systems that don't support overlayfs"
+  TRANSLATE=0
+fi
 
 ####################
 # Non-configurable #
