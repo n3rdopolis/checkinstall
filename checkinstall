@@ -40,6 +40,13 @@ trap trapint 2
 
 CHECKINSTALL_VERSION=1.7.0
 
+#
+#   We exclude as many "dangerous" directories as possible from translation.
+# installwatch excludes itself some directories, but we put them all here,
+# to be explicit.
+#
+IEXCLUDE="${DIRECTORIO_FUENTE},/dev,/proc,/tmp,/var/tmp,/sys,/run"
+
 # locate the file or directory that the parameter corresponds to;
 # always prints absolute path
 function followlinks () {
@@ -72,39 +79,6 @@ export TEXTDOMAIN=checkinstall
 DIRECTORIO_FUENTE=`pwd`
 PKG_BASENAME="`basename "$DIRECTORIO_FUENTE"`"
 SPEC_PATH=${PKG_BASENAME}.spec
-
-HASOVERLAYFS=$(grep -c overlay$ /proc/filesystems)
-FSCOUNT=$(findmnt -lUno TARGET |sed 's|$|/|'g |grep -v -e ^/sys/ -ve ^/dev/ -ve ^/proc/ -ve ^/run/ -ve ^// |wc -l)
-if [[ $HASOVERLAYFS == 0 ]]
-then
-  HASOVERLAYFSMODULE=$(modprobe -n overlay; echo $?)
-  if [[ $HASOVERLAYFSMODULE == 0 ]]
-  then
-    HASOVERLAYFS=1
-  fi
-fi
-if [[ $HASOVERLAYFS == 1 && $UID != 0 ]]
-then
-  echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
-  HASOVERLAYFS=0
-fi
-# TODO Overlayfs doesn't support ALL filesystems
-
-#Files can be bind mounted, but those bind mounts won't be replicatable with overlayfs
-BINDEDFILES=0
-findmnt -lUno TARGET| sort | while read FILESYSTEM 
-do
-  if [[ -f "$FILESYSTEM" ]] 
-  then
-    echo "$FILESYSTEM is a bind mounted file, this cannot be replicated in an overlayfs, falling back to legacy behaviour"
-    ((BINDEDFILES++))
-  fi
-done
-if [[ $BINDEDFILES > 0 ]]
-then
-  HASOVERLAYFS=0
-fi
-export HASOVERLAYFS
 
 #############################################################################
                            # Function definitions #
@@ -516,10 +490,47 @@ function copy_dir_hierarchy {
     return $?
 }
 
+# TODO copy from https://github.com/n3rdopolis/otherstuff/blob/master/installscript.sh when it is done
+function getmountmap
+{
+:
+}
 
+# TODO copy from installscript.sh
+function createtraslationmounts
+{
+:
+}
                       #################################
                       # Function definition ends here #
 #############################################################################
+
+#Detect if overlayfs can be used
+HASOVERLAYFS=$(grep -c overlay$ /proc/filesystems)
+if [[ $HASOVERLAYFS == 0 ]]
+then
+  HASOVERLAYFSMODULE=$(modprobe -n overlay; echo $?)
+  if [[ $HASOVERLAYFSMODULE == 0 ]]
+  then
+    HASOVERLAYFS=1
+  fi
+fi
+if [[ $HASOVERLAYFS == 1 && $UID != 0 ]]
+then
+  echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
+  HASOVERLAYFS=0
+fi
+
+if [[ $HASOVERLAYFS == 1 ]]
+then
+  FILESYSTEMMAP=$(getmountmap)
+  GETMAPRESULT=$?
+fi
+
+if [[ $GETMAPRESULT !=0 ]]
+then
+  HASOVERLAYFS=0
+fi
 
 # Show the version information
 ckversion
@@ -1548,36 +1559,17 @@ fi
 TMP_SCRIPT=${TMP_DIR}/installscript.sh
 cat << EOF > $TMP_SCRIPT
 #!/bin/bash
+EOF
 
 #Setup a union mount, if supported
 if [ $HASOVERLAYFS -eq 1 ]
 then
-  mkdir "${TMP_DIR}/TRANSL"
-  mkdir "${TMP_DIR}/workdir"
-  mkdir "${TMP_DIR}/uniondirs"
-  mount --make-rprivate /
-  MOUNTS=\$(findmnt -lUno TARGET|sort)
-  #Go through each mount, and create an overlayfs
-  echo "\$MOUNTS" | grep -ve ^/sys/ -ve ^/sys$ -ve ^/proc/ -ve ^/proc$ -ve ^/run/ -ve ^/run$ -ve ^/tmp/ -ve ^/tmp$ -ve ^/dev/ -ve ^/dev$ | while read MOUNT
-  do
-    WORKDIRNAME=\$RANDOM\$RANDOM\$RANDOM\$RANDOM\$RANDOM
-    mkdir -p "${TMP_DIR}/uniondirs/\$WORKDIRNAME"
-    mkdir -p "${TMP_DIR}/workdir/\$MOUNT"
-    mkdir -p "${TMP_DIR}/TRANSL/\$MOUNT"
-
-    mount -t overlay overlay -o lowerdir="\$MOUNT",upperdir="${TMP_DIR}/TRANSL/\$MOUNT",workdir="${TMP_DIR}/uniondirs/\$WORKDIRNAME" "${TMP_DIR}/workdir/\$MOUNT"
-  done
-
-  #Bind mount system file systems that should not be within union mounts
-  mount --rbind /dev   ${TMP_DIR}/workdir/dev
-  mount --rbind /proc  ${TMP_DIR}/workdir/proc
-  mount --rbind /sys   ${TMP_DIR}/workdir/sys
-  mount --rbind /run   ${TMP_DIR}/workdir/run
-  mount --rbind /tmp   ${TMP_DIR}/workdir/tmp
-
-  pivot_root "${TMP_DIR}/workdir" "${TMP_DIR}/workdir/${TMP_DIR}/uniondirs"
+declare -p FILESYSTEMMAP >> ${TMP_SCRIPT}
+declare -f createtraslationmounts >> ${TMP_SCRIPT}
+echo 'echo "$FILESYSTEMMAP" | createtraslationmounts' >> ${TMP_SCRIPT}
 fi
 
+cat << EOF >> $TMP_SCRIPT
 cd "$DIRECTORIO_FUENTE"
 EOF
 
@@ -1600,14 +1592,6 @@ chmod 700 $TMP_SCRIPT
 echo
 echogn "Installing with %s..." "${INSTALLCMD[*]}"
 
-
-#
-#   We exclude as many "dangerous" directories as possible from translation.
-# installwatch excludes itself some directories, but we put them all here,
-# to be explicit.
-#
-IEXCLUDE="${DIRECTORIO_FUENTE},/dev,/proc,/tmp,/var/tmp,/sys,/run"
-  
 
 # Run the install command, showing the results interactively if we were asked
 # to do so in the configuration section (see the SHOW_INSTALL switch above)
