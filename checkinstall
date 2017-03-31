@@ -1568,7 +1568,14 @@ if [ $HASOVERLAYFS -eq 1 ]
 then
 declare -p FILESYSTEMMAP >> ${TMP_SCRIPT}
 declare -f createtraslationmounts >> ${TMP_SCRIPT}
-echo 'echo "$FILESYSTEMMAP" | createtraslationmounts' >> ${TMP_SCRIPT}
+echo 'echo "$FILESYSTEMMAP" | createtraslationmounts
+MOUNTSTATUS=${PIPESTATUS[1]}
+if [[ $MOUNTSTATUS != 0 ]]
+then
+  echo "An overlay traslation file system mount, or bind mount failed"
+  exit 1
+fi' >> ${TMP_SCRIPT}
+
 fi
 
 cat << EOF >> $TMP_SCRIPT
