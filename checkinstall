@@ -1,6 +1,6 @@
 #!/bin/bash
 ##############################################################################
-#         $Id: checkinstall,v 1.7.0.00 2016/10/28 17:01:21 izto Exp $
+#         $Id: checkinstall,v 1.6.99.00 2017/04/15 19:32:21 izto Exp $
 #                           ########################                         
 #                                                                            
 #
@@ -1192,6 +1192,9 @@ shift
 
 # Are we going to use filesystem translation?
 ! [ "$TRANSLATE" ] && TRANSLATE=1
+
+# Is overlayfs filesystem translation being used?
+! [ "$OVERLAYFSTRANS" ] && $OVERLAYFSTRANS=1
 
 # Reset the owner/group of all files to root.root?
 ! [ "$RESET_UIDS" ] && RESET_UIDS=0
