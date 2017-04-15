@@ -143,6 +143,7 @@ function usage() {
    echo
    echog "--install=<yes|no>             Toggle created package installation"
    echog "--fstrans=<yes|no>             Enable/disable the filesystem translation code, for non-overlayfs systems"
+   echog "--overlayfstrans=<yes|no>      Enable/disable overlayfs redirection"
    echo
    echog "*Scripting options*"
    echo
@@ -754,7 +755,7 @@ fi
 # Arguments parsing
 
 CKNAME=`basename "$0"`
-PARAMS=`getopt -a -n $CKNAME -o +d:DA:t:RShHy -l arch:,type:,si,showinstall::,ss,showslack::,deldoc::,delspec::,deldesc::,strip::,addso::,install::,stripso::,gzman::,bk,backup::,autodoinst::,reset-uids::,fstrans::,spec:,exclude:,include:,pkgname:,pkgversion:,pkgrelease:,pkglicense:,pkggroup:,pkgsource:,pkgaltsource:,pakdir:,docdir:,requires:,provides:,conflicts:,replaces:,maintainer:,dpkgflags:,rpmflags:,pkgarch:,umask:,with-tar:,inspect,review-spec,review-control,newslack,help,nodoc,rpmi,rpmu,version,copyright,default -- "$@"`
+PARAMS=`getopt -a -n $CKNAME -o +d:DA:t:RShHy -l arch:,type:,si,showinstall::,ss,showslack::,deldoc::,delspec::,deldesc::,strip::,addso::,install::,stripso::,gzman::,bk,backup::,autodoinst::,reset-uids::,fstrans::,overlayfstrans::,spec:,exclude:,include:,pkgname:,pkgversion:,pkgrelease:,pkglicense:,pkggroup:,pkgsource:,pkgaltsource:,pakdir:,docdir:,requires:,provides:,conflicts:,replaces:,maintainer:,dpkgflags:,rpmflags:,pkgarch:,umask:,with-tar:,inspect,review-spec,review-control,newslack,help,nodoc,rpmi,rpmu,version,copyright,default -- "$@"`
 
 [ $? -gt 0 ] && help_notice
 
@@ -1092,6 +1093,17 @@ EOF
                 boolean_usage "--fstrans" $1
           esac
           ;;
+      --overlayfstrans)
+          shift
+          case `eval echo $1` in
+             1|yes|'')
+                OVERLAYFSTRANS=1;;
+             0|no)
+                OVERLAYFSTRANS=0;;
+             *)
+                boolean_usage "--overlayfstrans" $1
+          esac
+          ;;
       --exclude)
          shift
          EXCLUDE=`eval echo $1`
@@ -1238,36 +1250,36 @@ shift
 
 
 #Detect if overlayfs can be used
-HASOVERLAYFS=$(grep -c overlay$ /proc/filesystems)
-if [[ $HASOVERLAYFS == 0 ]]
+if [[ $OVERLAYFSTRANS == 1 && $UID == 0 ]]
 then
-  HASOVERLAYFSMODULE=$(modprobe -n overlay; echo $?)
-  if [[ $HASOVERLAYFSMODULE == 0 ]]
+  HASOVERLAYFS=$(grep -c overlay$ /proc/filesystems)
+  if [[ $HASOVERLAYFS == 0 ]]
   then
-    HASOVERLAYFS=1
+    HASOVERLAYFSMODULE=$(modprobe -n overlay; echo $?)
+    if [[ $HASOVERLAYFSMODULE == 0 ]]
+    then
+      HASOVERLAYFS=1
+    fi
   fi
-fi
-if [[ $HASOVERLAYFS == 1 && $UID != 0 ]]
-then
-  echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
-  HASOVERLAYFS=0
-fi
-
-if [[ $HASOVERLAYFS == 1 ]]
-then
+  #Get a mapping of the filesystem, if it reports an unfavorable condition, then fall back
   FILESYSTEMMAP=$(getmountmap)
   GETMAPRESULT=$?
-fi
-
-if [[ $GETMAPRESULT != 0 ]]
-then
+  if [[ $HASOVERLAYFS == 1 && $GETMAPRESULT == 0 ]]
+  then
+    USEOVERLAYFS=1
+  fi
+else
   HASOVERLAYFS=0
+  if [[ $UID != 0 ]]
+  then
+    echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
+  fi
 fi
-
-if [[ $HASOVERLAYFS == 1 ]]
-then
-  echo "overlayfs is being used, fstrans is only needed for systems that don't support overlayfs"
-  TRANSLATE=0
+#Turn off fstrans if overlayfs supported
+if [[ $USEOVERLAYFS == 1 && $TRANSLATE == 1 ]]
+  then
+    echo "Using overlayfstrans over legacy fstrans."
+    TRANSLATE=0
 fi
 
 ####################
@@ -1323,7 +1335,7 @@ fi
 #############################################################################
 
 
-if [[ $HASOVERLAYFS == 0 ]]
+if [[ $USEOVERLAYFS == 0 ]]
 then
   if [ ! -x $INSTALLWATCH ]; then
      echo
@@ -1796,7 +1808,7 @@ TMP_DIR=$TMP_DIR
 EOF
 
 #Setup a union mount, if supported
-if [ $HASOVERLAYFS -eq 1 ]
+if [ $USEOVERLAYFS -eq 1 ]
 then
 declare -p FILESYSTEMMAP >> ${TMP_SCRIPT}
 declare -f createtraslationmounts >> ${TMP_SCRIPT}
@@ -1838,7 +1850,7 @@ echogn "Installing with %s..." "${INSTALLCMD[*]}"
 # to do so in the configuration section (see the SHOW_INSTALL switch above)
 INSTALL_FAILED=0
 if [ $SHOW_INSTALL -eq 0 ]; then
-   if [[ $HASOVERLAYFS == 0 ]]
+   if [[ $USEOVERLAYFS == 0 ]]
    then
     $INSTALLWATCH --logfile=${TMP_DIR}/newfiles.tmp --exclude="${IEXCLUDE}" \
     --root=${TMP_DIR} --transl=${TRANSLATE} --backup=${BACKUP} --dbglvl=$DEBUG\
@@ -1853,7 +1865,7 @@ else
    echo
    echo
    echog "========================= Installation results ==========================="
-   if [[ $HASOVERLAYFS == 0 ]]
+   if [[ $USEOVERLAYFS == 0 ]]
    then
     $INSTALLWATCH --logfile=${TMP_DIR}/newfiles.tmp --exclude="${IEXCLUDE}" \
     --root=${TMP_DIR} --transl=${TRANSLATE} --backup=${BACKUP} --dbglvl=$DEBUG\
@@ -1899,7 +1911,7 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	# If translation was active, the installed files are under TRANSL/
 	TRANSLROOT="/"
-	if [[ "${TRANSLATE}" == "1" || $HASOVERLAYFS == 1 ]]; then
+	if [[ "${TRANSLATE}" == "1" || $USEOVERLAYFS == 1 ]]; then
 		TRANSLROOT="${TMP_DIR}/TRANSL"
 	fi
 
@@ -1930,7 +1942,7 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	fi
 
 	#If using overlayfs, make a newfiles.tmp file
-        if [[ $HASOVERLAYFS == 1 ]]
+        if [[ $USEOVERLAYFS == 1 ]]
         then
           OLDPWD="$PWD"
           cd "${TMP_DIR}/TRANSL"
@@ -2037,7 +2049,7 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	#fstrans handles the creation of the backup folder
 	#On overlayfs systems, this has to be handled by checkinstall
-        if [[ $HASOVERLAYFS == 1 && $BACKUP == 1 ]]
+        if [[ $USEOVERLAYFS == 1 && $BACKUP == 1 ]]
         then
           mkdir "/${TMP_DIR}/BACKUP"
           cat "/${TMP_DIR}/newfiles" | while read File
