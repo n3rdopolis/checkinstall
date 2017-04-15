@@ -518,7 +518,7 @@ function getmountmap
   else
     CHROOTPATH=/
   fi
-  FSES=$(findmnt -vUPno MAJ:MIN,FSROOT,TARGET,ID  | sed -e "s|$CHROOTPATH|/|g" -e "s|//|/|g" -e "s|^MAJ:MIN=|MAJ_MIN=|g" | sort -k4,4n --stable -k 1,1 -k2,2)
+  FSES=$(findmnt -vUPno MAJ:MIN,FSROOT,TARGET,ID  | sed -e "s|$CHROOTPATH|/|g" -e "s|//|/|g" -e "s|^MAJ:MIN=|MAJ_MIN=|g" | sort -k4,4n --stable)
 
   IFS=,
   EXCLUDES+=($IEXCLUDE)
@@ -542,28 +542,27 @@ function getmountmap
   for SEARCH1FS in $FSES
   do
     HASBINDS=0
-    unset DONE2FSES
     unset IFS
     declare $SEARCH1FS
     SEARCH1ID="${ID:1:-1}"
     SEARCH1FSROOT="${FSROOT:1:-1}"
     SEARCH1TARGET="${TARGET:1:-1}"
     SEARCH1MAJMIN="${MAJ_MIN:1:-1}"
-
     FS1WASHANDLED=0
     IFS=$'\n'
     for DONE1FS in $DONE1FSES
     do
-      if [[ "$DONE1FS" == "$MAJ_MIN" ]]
+      if [[ "$DONE1FS" == "${SEARCH1MAJMIN}:${SEARCH1FSROOT}" ]]
       then
         FS1WASHANDLED=1
         break
       fi
     done
 
-    if [[ ("$SEARCH1FSROOT" == "/") && ("$FS1WASHANDLED" == 0) ]]
+    if [[ ("$FS1WASHANDLED" == 0) ]]
     then
-    DONE1FSES+="$MAJ_MIN"$'\n'
+    REALPATHMAJMIN=$(findmnt -vUrno MAJ:MIN,FSROOT "$SEARCH1TARGET$SEARCH1FSROOT")
+    DONE1FSES+="${SEARCH1MAJMIN}:${SEARCH1FSROOT}"$'\n'
     IFS=$'\n'
     for SEARCH2FS in $FSES
     do
@@ -577,7 +576,7 @@ function getmountmap
       FS2WASHANDLED=0
       for DONE2FS in $DONE2FSES
       do
-        if [[ $DONE2FS == $SEARCH2FS ]]
+        if [[ $DONE2FS == $SEARCH2ID ]]
         then
           FS2WASHANDLED=1
           break
@@ -595,14 +594,16 @@ function getmountmap
       done
 
 
-      if [[ ("$SEARCH1MAJMIN" == "$SEARCH2MAJMIN")  && ("$SEARCH1TARGET" != "$SEARCH2TARGET" )  && ("$FS2WASHANDLED" == 0 ) ]]
+      if [[ ("$SEARCH1MAJMIN" == "$SEARCH2MAJMIN") && ("$SEARCH1TARGET" != "$SEARCH2TARGET" ) && ("$FS2WASHANDLED" == 0 ) && ($REALPATHMAJMIN == "$SEARCH1MAJMIN $SEARCH1FSROOT") ]]
       then
+        #Dont add extra leading slashes. Most paths dont end in /, except for root paths,
         if [[ "$SEARCH1TARGET" == "/" ]]
         then
           SEARCH1TARGET=""
         fi
-        DONE2FSES+="$SEARCH2FS"$'\n'
-        if [[ -f $SEARCH2TARGET ]]
+        DONE2FSES+="$SEARCH2ID"$'\n'
+        DONE1FSES+="${SEARCH2MAJMIN}:${SEARCH2FSROOT}"$'\n'
+        if [[ -f "$SEARCH2TARGET" ]]
         then
           >&2 echo "$SEARCH2TARGET is a bind mounted file"
           FILE_IS_BIND_MOUNTED=1
@@ -614,6 +615,7 @@ function getmountmap
       then
         if [[ $TARGETEXCLUDED == 0 ]]
         then
+          #Detect if the filesystem can support overlayfs
           checkcanoverlay "$SEARCH2TARGET"
           filesystemcanoverlay=$?
           if [[ $filesystemcanoverlay != 0 ]]
