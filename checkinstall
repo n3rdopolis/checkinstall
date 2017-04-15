@@ -616,7 +616,7 @@ function getmountmap
         then
           checkcanoverlay "$SEARCH2TARGET"
           filesystemcanoverlay=$?
-          if [[ filesystemcanoverlay != 0 ]]
+          if [[ $filesystemcanoverlay != 0 ]]
           then
             >&2 echo "$SEARCH2TARGET is not supported by overlayfs"
             UNSUPPORTED_LOWERDIR_FS=1
