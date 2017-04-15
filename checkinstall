@@ -1790,7 +1790,7 @@ fi
 TMP_SCRIPT=${TMP_DIR}/installscript.sh
 cat << EOF > $TMP_SCRIPT
 #!/bin/bash
-TMP_PATH=$TMP_PATH
+TMP_DIR=$TMP_DIR
 EOF
 
 #Setup a union mount, if supported
