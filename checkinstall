@@ -491,10 +491,17 @@ function copy_dir_hierarchy {
     return $?
 }
 
-# TODO detect if overlayfs not supported. This is just a placeholder for now
+# TODO better detection, right now, it tests using the path in a namespace
 function checkcanoverlay
 {
-  return 0
+  unshare -rm mount -t overlay overlay -o lowerdir="$1:$1"  /media/ &>/dev/null
+  overlaytestresult=$?
+  if [[ $overlaytestresult == 0 ]]
+  then
+    return 0
+  else
+    return 1
+  fi
 }
 
 # For overylayfs systems, get the mount map to reproduce with binds and overlayfs for translation without using fstrans
@@ -529,9 +536,8 @@ function getmountmap
 
   if [[ $EXCLUDECOUNT == 0 ]]
   then
-    EXCLUDES=(/proc,/sys,/dev,/run,/tmp)
+    EXCLUDES=(/proc /sys /dev /run /tmp)
   fi
-
   MOUNT_MAP_OUTPUT=""
 
   FILE_IS_BIND_MOUNTED=0
