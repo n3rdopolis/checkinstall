@@ -1,6 +1,6 @@
 #!/bin/bash
 ##############################################################################
-#         $Id: checkinstall,v 1.7.0.00 2017/04/10 01:35:56 izto Exp $
+#         $Id: checkinstall,v 1.7.0.00 2017/04/19 12:04:33 izto Exp $
 #                           ########################                         
 #                                                                            
 #
@@ -515,7 +515,7 @@ function getmountmap
   #Handle choots
   if [[ $ROOTISMOUNTPOINT != 0 ]]
   then
-    >&2 echo "/ is not a mountpoint. Is / a chroot? Try to bindmount the chroot path onto itself"
+    >&2 echog "/ is not a mountpoint. Is / a chroot? Try to bindmount the chroot path onto itself"
     return 1
   fi
   INITROOTFS=$(findmnt -vUrno FSROOT -N1 /)
@@ -612,7 +612,7 @@ function getmountmap
         DONE1FSES+="${SEARCH2MAJMIN}:${SEARCH2FSROOT}"$'\n'
         if [[ -f "$SEARCH2TARGET" ]]
         then
-          >&2 echo "$SEARCH2TARGET is a bind mounted file"
+          >&2 echog "$SEARCH2TARGET is a bind mounted file"
           FILE_IS_BIND_MOUNTED=1
         fi
         MOUNT_MAP_OUTPUT+="MOUNTSOURCE=\"$SEARCH1TARGET$SEARCH2FSROOT\" MOUNTDEST=\"$SEARCH2TARGET\" ISBIND=\"1\" DOOVERLAY=\"0\""$'\n'
@@ -627,7 +627,7 @@ function getmountmap
           filesystemcanoverlay=$?
           if [[ $filesystemcanoverlay != 0 ]]
           then
-            >&2 echo "$SEARCH2TARGET is not supported by overlayfs"
+            >&2 echog "$SEARCH2TARGET is not supported by overlayfs"
             UNSUPPORTED_LOWERDIR_FS=1
           fi
           MOUNT_MAP_OUTPUT+="MOUNTSOURCE=\"\" MOUNTDEST=\"$SEARCH2TARGET\" ISBIND=\"0\" DOOVERLAY=\"1\""$'\n'
@@ -685,7 +685,7 @@ function createtraslationmounts
         MOUNTFAILCOUNT+=$MOUNTRESULT
         if [[ $MOUNTRESULT != 0 ]]
         then
-          >&2 echo "Failed to union mount $MOUNTDEST"
+          >&2 echog "Failed to union mount $MOUNTDEST"
         fi
       else
         mount --bind $MOUNTDEST "${TMP_DIR}/workdir/$MOUNTDEST"
@@ -693,7 +693,7 @@ function createtraslationmounts
         MOUNTFAILCOUNT+=$MOUNTRESULT
         if [[ $MOUNTRESULT != 0 ]]
         then
-          >&2 echo "Failed to bind in non unioned $MOUNTDEST"
+          >&2 echog "Failed to bind in non unioned $MOUNTDEST"
         fi
       fi
     else
@@ -706,17 +706,17 @@ function createtraslationmounts
         MOUNTFAILCOUNT+=$MOUNTRESULT
         if [[ $MOUNTRESULT != 0 ]]
         then
-          >&2 echo "Failed bind mount real $MOUNTSOURCE to $MOUNTDEST"
+          >&2 echog "Failed bind mount real $MOUNTSOURCE to $MOUNTDEST"
         fi
         mount --bind "${TMP_DIR}/workdir/$MOUNTSOURCE" "${TMP_DIR}/workdir/$MOUNTDEST"
         MOUNTRESULT=$?
         MOUNTFAILCOUNT+=$MOUNTRESULT
         if [[ $MOUNTRESULT != 0 ]]
         then
-          >&2 echo "Failed bind mount translation $MOUNTSOURCE to $MOUNTDEST"
+          >&2 echog "Failed bind mount translation $MOUNTSOURCE to $MOUNTDEST"
         fi
       else
-        >&2 echo "$MOUNTSOURCE does not exist"
+        >&2 echog "$MOUNTSOURCE does not exist"
         MOUNTFAILCOUNT+=1
       fi
     fi
@@ -729,7 +729,7 @@ function createtraslationmounts
   MOUNTFAILCOUNT+=$MOUNTRESULT
   if [[ $MOUNTRESULT != 0 ]]
   then
-    >&2 echo "Failed to pivot_root"
+    >&2 echog "Failed to pivot_root"
   fi
 
   if [[ $MOUNTFAILCOUNT == 0 ]]
@@ -1275,19 +1275,20 @@ then
   GETMAPRESULT=$?
   if [[ $HASOVERLAYFS == 1 && $GETMAPRESULT == 0 ]]
   then
+    echog "Using overlayfs translation"
     USEOVERLAYFS=1
   fi
 else
   HASOVERLAYFS=0
   if [[ $UID != 0 ]]
   then
-    echo "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
+    echog "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
   fi
 fi
 #Turn off fstrans if overlayfs supported
 if [[ $USEOVERLAYFS == 1 && $TRANSLATE == 1 ]]
   then
-    echo "Using overlayfstrans over legacy fstrans."
+    echog "Using overlayfstrans over legacy fstrans."
     TRANSLATE=0
 fi
 
