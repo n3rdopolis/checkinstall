@@ -1,6 +1,6 @@
 #!/bin/bash
 ##############################################################################
-#         $Id: checkinstall,v 1.6.99.00 2017/04/15 19:32:21 izto Exp $
+#         $Id: checkinstall,v 1.7.0.00 2017/04/10 01:35:56 izto Exp $
 #                           ########################                         
 #                                                                            
 #
@@ -143,7 +143,7 @@ function usage() {
    echo
    echog "--install=<yes|no>             Toggle created package installation"
    echog "--fstrans=<yes|no>             Enable/disable the filesystem translation code, for non-overlayfs systems"
-   echog "--overlayfstrans=<yes|no>      Enable/disable overlayfs redirection"
+   echog "--overlayfstrans=<yes|no>      Enable/disable overlayfs redirection. Overrides standard fstrans"
    echo
    echog "*Scripting options*"
    echo
