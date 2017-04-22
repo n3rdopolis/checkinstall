@@ -494,6 +494,7 @@ function copy_dir_hierarchy {
 # TODO better detection, right now, it tests using the path in a namespace
 function checkcanoverlay
 {
+  #Use a user namespace, only if the user isn't the root user
   if [[ $UID == 0 ]]
   then
     unshare -m mount -t overlay overlay -o lowerdir="$1:$1"  /tmp/ &>/dev/null
@@ -1294,7 +1295,7 @@ else
 fi
 #Turn off fstrans if overlayfs supported
 if [[ $USEOVERLAYFS == 1 && $TRANSLATE == 1 ]]
-  then
+then
     echog "Using overlayfstrans over legacy fstrans."
     TRANSLATE=0
 fi
