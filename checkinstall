@@ -494,7 +494,12 @@ function copy_dir_hierarchy {
 # TODO better detection, right now, it tests using the path in a namespace
 function checkcanoverlay
 {
-  unshare -rm mount -t overlay overlay -o lowerdir="$1:$1"  /media/ &>/dev/null
+  if [[ $UID == 0 ]]
+  then
+    unshare -m mount -t overlay overlay -o lowerdir="$1:$1"  /tmp/ &>/dev/null
+  else
+    unshare -rm mount -t overlay overlay -o lowerdir="$1:$1"  /tmp/ &>/dev/null
+  fi
   overlaytestresult=$?
   if [[ $overlaytestresult == 0 ]]
   then
