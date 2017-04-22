@@ -1200,7 +1200,7 @@ shift
 ! [ "$TRANSLATE" ] && TRANSLATE=1
 
 # Is overlayfs filesystem translation being used?
-! [ "$OVERLAYFSTRANS" ] && $OVERLAYFSTRANS=1
+! [ "$OVERLAYFSTRANS" ] && OVERLAYFSTRANS=1
 
 # Reset the owner/group of all files to root.root?
 ! [ "$RESET_UIDS" ] && RESET_UIDS=0
@@ -1277,9 +1277,11 @@ then
   then
     echog "Using overlayfs translation"
     USEOVERLAYFS=1
+  else
+    USEOVERLAYFS=0
   fi
 else
-  HASOVERLAYFS=0
+  USEOVERLAYFS=0
   if [[ $UID != 0 ]]
   then
     echog "Support for using overlayfs requires root permissions. Falling back to legacy behaviour."
