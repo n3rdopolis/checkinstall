@@ -1,6 +1,6 @@
 #!/bin/bash
 ##############################################################################
-#         $Id: checkinstall,v 1.7.0.00 2017/04/19 12:04:33 izto Exp $
+#         $Id: checkinstall,v 1.7.0.00 2017/06/10 13:18:48 izto Exp $
 #                           ########################                         
 #                                                                            
 #
@@ -576,8 +576,8 @@ function getmountmap
 
   #Overlayfs cant be on the upperdir of overlayfs, if /var/tmp is overlayfs, fallback
   checkcanoverlayasupper "$BASE_TMP_DIR"
-  filesystemcanoverlayupper=$?
-  if [[ $filesystemcanoverlayupper != 0 ]]
+  filesystemcanoverlayasupper=$?
+  if [[ $filesystemcanoverlayasupper != 0 ]]
   then
     >&2 echog "$BASE_TMP_DIR is not supported as the upperdir for overlayfs."
     UNSUPPORTED_UPPERDIR_FS=1
@@ -663,8 +663,8 @@ function getmountmap
         then
           #Detect if the filesystem can support overlayfs
           checkcanoverlayaslower "$SEARCH2TARGET"
-          filesystemcanoverlaylower=$?
-          if [[ $filesystemcanoverlaylower != 0 ]]
+          filesystemcanoverlayaslower=$?
+          if [[ $filesystemcanoverlayaslower != 0 ]]
           then
             >&2 echog "$SEARCH2TARGET is not supported by overlayfs"
             UNSUPPORTED_LOWERDIR_FS=1
