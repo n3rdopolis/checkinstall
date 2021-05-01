@@ -72,7 +72,7 @@ INSTALLDIR=`followlinks "$0"`
 INSTALLDIR=`dirname "$INSTALLDIR"`/..
 
 # gettext variables
-export TEXTDOMAINDIR="$INSTALLDIR"/lib/checkinstall/locale
+export TEXTDOMAINDIR=/usr/share/locale
 export TEXTDOMAIN=checkinstall
 
 # .spec file path
