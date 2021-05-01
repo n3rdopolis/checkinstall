@@ -2818,7 +2818,7 @@ int open(const char *pathname, int flags, ...) {
 #endif
 
 	va_start(ap, flags);
-	mode = va_arg(ap, mode_t);
+	mode = va_arg(ap, int /*promoted from mode_t*/);
 	va_end(ap);
 
 	  /* We were asked to work in "real" mode */
@@ -3595,7 +3595,7 @@ int open64(const char *pathname, int flags, ...) {
 #endif
 
 	va_start(ap, flags);
-	mode = va_arg(ap, mode_t);
+	mode = va_arg(ap, int /*promoted from mode_t*/);
 	va_end(ap);
 
 	  /* We were asked to work in "real" mode */
@@ -3832,7 +3832,7 @@ int openat (int dirfd, const char *path, int flags, ...) {
  	va_list arg;
  	if(flags & O_CREAT) {
  		va_start(arg, flags);
- 		mode = va_arg(arg, mode_t);
+ 		mode = va_arg(arg, int /*promoted from mode_t*/);
  		va_end (arg);
  	}
  	
