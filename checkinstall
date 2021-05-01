@@ -789,7 +789,7 @@ function createtraslationmounts
 ckversion
 echo
 
-CHECKINSTALLRC=${CHECKINSTALLRC:-${INSTALLDIR}/checkinstallrc}
+CHECKINSTALLRC=${CHECKINSTALLRC:-/etc/checkinstallrc}
 if ! [ -f $CHECKINSTALLRC ]; then
    echog "The checkinstallrc file was not found at:\n$CHECKINSTALLRC"
    echo
