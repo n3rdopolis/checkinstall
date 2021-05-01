@@ -184,7 +184,7 @@ function usage() {
    echog "--stripso=<yes|no>             Strip any ELF binary libraries (.so files)" 
    echog "--addso=<yes|no>               Search for any shared libs and add"
    echog "                               them to /etc/ld.so.conf"
-   echog "--reset-uids=<yes|no>          Reset perms for all files/dirs to 755 and"
+   echog "--reset-uids=<yes|no>          Reset perms for all files to o=g, dirs to 755 and"
    echog "                               the owner/group for all dirs to root.root"
    echog "--gzman=<yes|no>               Compress any man pages found inside the package"
    echog "--docdir=<path>                Where to put documentation files"
@@ -2184,6 +2184,7 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 	if [ $RESET_UIDS -gt 0 ]; then
 	   find "$BUILD_DIR" -exec chown root.root {} \;
 	   find "$BUILD_DIR" -type d -exec chmod 755 {} \;
+	   find "$BUILD_DIR" -type f -exec chmod o=g {} \;
 	fi
 
 	##############################################################################
