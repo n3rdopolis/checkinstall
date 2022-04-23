@@ -40,12 +40,7 @@ trap trapint 2
 
 CHECKINSTALL_VERSION=1.7.0
 
-#
-#   We exclude as many "dangerous" directories as possible from translation.
-# installwatch excludes itself some directories, but we put them all here,
-# to be explicit.
-#
-IEXCLUDE="${DIRECTORIO_FUENTE},/dev,/proc,/tmp,/var/tmp,/sys,/run"
+
 
 # locate the file or directory that the parameter corresponds to;
 # always prints absolute path
@@ -80,6 +75,12 @@ DIRECTORIO_FUENTE=`pwd`
 PKG_BASENAME="`basename "$DIRECTORIO_FUENTE"`"
 SPEC_PATH=${PKG_BASENAME}.spec
 
+#
+#   We exclude as many "dangerous" directories as possible from translation.
+# installwatch excludes itself some directories, but we put them all here,
+# to be explicit.
+#
+IEXCLUDE="${DIRECTORIO_FUENTE},/dev,/proc,/tmp,/var/tmp,/sys,/run"
 #############################################################################
                            # Function definitions #
                            ########################
@@ -501,13 +502,14 @@ function copy_dir_hierarchy {
 # TODO better detection, right now, it tests using the path in a namespace
 function checkcanoverlayaslower
 {
-  #Use a user namespace, only if the user isn't the root user
+  #Use a user namespace, test using the given directory, and a newly mounted tmpfs
   if [[ $UID == 0 ]]
   then
-    unshare -m mount -t overlay overlay -o lowerdir="$1:$1"  /tmp/ &>/dev/null
+    unshare -m bash -c "mount -t tmpfs tmpfs /tmp; mount -t overlay overlay -o lowerdir="$1:/tmp"  /tmp/" &>/dev/null
   else
-    unshare -rm mount -t overlay overlay -o lowerdir="$1:$1"  /tmp/ &>/dev/null
+    unshare -rm bash -c "mount -t tmpfs tmpfs /tmp; mount -t overlay overlay -o lowerdir="$1:/tmp"  /tmp/" &>/dev/null
   fi
+
   overlaytestresult=$?
   if [[ $overlaytestresult == 0 ]]
   then
@@ -568,16 +570,6 @@ function getmountmap
 
   FSES=$(findmnt -vUrno MAJ:MIN,FSROOT,TARGET,ID  | sed -e "s|$CHROOTPATH|/|g" -e "s|//|/|g" | sort -k4,4n --stable)
 
-  IFS=,
-  EXCLUDES+=($IEXCLUDE)
-  EXCLUDES+=($EXCLUDE)
-  unset IFS
-  EXCLUDECOUNT=${#EXCLUDES[@]}
-
-  if [[ $EXCLUDECOUNT == 0 ]]
-  then
-    EXCLUDES=(/proc /sys /dev /run /tmp)
-  fi
   MOUNT_MAP_OUTPUT=""
 
   FILE_IS_BIND_MOUNTED=0
@@ -715,6 +707,14 @@ function createtraslationmounts
     >&2 echo "Failed to make all mounts private"
   fi
 
+  #Create empty excluded folders under TRANSL
+  #The workaround to delete empty subfolder trees under TRANSL if it was created to recreate a folder under a mount structure
+  #Use the same workaround here, so that an empty /tmp doesn't get created
+  for EXCLUDE in ${EXCLUDES[@]}
+  do
+    mkdir -p "${TMP_DIR}/TRANSL/$EXCLUDE"
+  done
+
   #Go through each mount, and create an overlayfs, or bind it in, or create a bind mount, based on an existing bind mount
   IFS=$'\n'
   for MAPPEDMOUNT in $MAPPEDMOUNTS
@@ -746,7 +746,7 @@ function createtraslationmounts
         fi
       fi
     else
-      if [[ -d "$MOUNTSOURCE" ]]
+      if [[ -d "${TMP_DIR}/workdir/$MOUNTSOURCE" ]]
       then
         mkdir -p "${TMP_DIR}/TRANSL/$MOUNTSOURCE"
         mkdir -p "${TMP_DIR}/TRANSL/$MOUNTDEST"
@@ -771,7 +771,23 @@ function createtraslationmounts
     fi
 
   done
+
+  #Remount all overlayfs filesystems to account for folders being created in the /TRANL/ upperdir
+  #Overlayfs does not expect items to be created in the upperdir, and can cause problems
+  #but these problems go away after a remount
+  for MAPPEDMOUNT in $MAPPEDMOUNTS
+  do
+    eval "$MAPPEDMOUNT"
+    if [[ $ISBIND == 0 ]]
+    then
+      mount -o remount "${TMP_DIR}/workdir/$MOUNTDEST"
+    fi
+  done
+
   unset IFS
+
+  #Get the list of folders that had to be created in the overlay to be able to simulate the mount point structure
+  find "${TMP_DIR}/TRANSL/" > "${TMP_DIR}/TRANSLFOLDERLIST"
 
   pivot_root "${TMP_DIR}/workdir" "${TMP_DIR}/workdir/${TMP_DIR}/uniondirs"
   MOUNTRESULT=$?
@@ -1310,6 +1326,16 @@ shift
 # Show the makepkg program's output?
 ! [ "$SHOW_MAKEPKG" ] && SHOW_MAKEPKG=0
 
+IFS=,
+EXCLUDES+=($IEXCLUDE)
+EXCLUDES+=($EXCLUDE)
+unset IFS
+EXCLUDECOUNT=${#EXCLUDES[@]}
+
+if [[ $EXCLUDECOUNT == 0 ]]
+then
+  EXCLUDES=(/proc /sys /dev /run /tmp /var/tmp)
+fi
 
 #Detect if overlayfs can be used
 if [[ $OVERLAYFSTRANS == 1 && $UID == 0 ]]
@@ -1882,6 +1908,7 @@ EOF
 #Setup a union mount, if supported
 if [ $USEOVERLAYFS -eq 1 ]
 then
+declare -p EXCLUDES >> ${TMP_SCRIPT}
 declare -p FILESYSTEMMAP >> ${TMP_SCRIPT}
 declare -f createtraslationmounts >> ${TMP_SCRIPT}
 echo 'createtraslationmounts < <(echo "$FILESYSTEMMAP")
@@ -2146,48 +2173,58 @@ if [ $INSTALL_FAILED -gt 0 ]; then
 
 	cd /
 
-	( cat /${TMP_DIR}/newfiles | while read i; do 
-	      if [ ! -d "${TRANSLROOT}${i}" -o -L "${TRANSLROOT}${i}" ]; then
-	      echo ".${i}"
-	   fi
-	done ) > /${TMP_DIR}/newfiles-tar
+	if [[ $USEOVERLAYFS == 1 ]]
+	then
+		#In the overlay, clean up folders that were created to simulate the mount point structure
+		while read TRANSLFOLDER
+		do
+			rm -d "$TRANSLFOLDER" 2> /dev/null
+		done < <(cat "${TMP_DIR}/TRANSLFOLDERLIST" | sort -r | grep -v "^${TMP_DIR}/TRANSL/$")
+		rsync -a "${TRANSLROOT}"/* "${BUILD_DIR}"
+	else
+	    ( cat /${TMP_DIR}/newfiles | while read i; do 
+	          if [ ! -d "${TRANSLROOT}${i}" -o -L "${TRANSLROOT}${i}" ]; then
+	          echo ".${i}"
+	       fi
+	    done ) > /${TMP_DIR}/newfiles-tar
 
-        # Here it gets tricky: we need to copy all new files to our build dir,
-        # keeping permissions as they are for parents directories as well as for
-        # the files themselves. If the parents or the file are symlinks, we
-        # dereference them only if they were not modified by the installation
-        # script. 
-        NEWFILES="${TMP_DIR}/modified"
-        LOGFILE="/${TMP_DIR}/checkinstall.log"
+            # Here it gets tricky: we need to copy all new files to our build dir,
+            # keeping permissions as they are for parents directories as well as for
+            # the files themselves. If the parents or the file are symlinks, we
+            # dereference them only if they were not modified by the installation
+            # script. 
+            NEWFILES="${TMP_DIR}/modified"
+            LOGFILE="/${TMP_DIR}/checkinstall.log"
 
- 	cat /${TMP_DIR}/newfiles-tar | while read file; do
-            parents=`list_parents ${file} | sed s/^\.//`
-            for p in $parents; do
-            # We have to remove the ./ at the beginning
-		truep=`echo ${p} | sed s/^\.//`
-                # Parent has been modified: do _not_ dereference
-		grep "${truep}$" "${NEWFILES}" &>/dev/null
-		if [ $? -eq 0 ]; then
-                    $TAR --no-recursion -C "${TRANSLROOT}" -cpf - $p \
-			| $TAR -f - -xvpC "${BUILD_DIR}" >> $LOGFILE 2>&1
-		else
-                    # Parent wasn't touched by the install script: dereference
-                    $TAR --no-recursion -C "${TRANSLROOT}" -cphf - $p \
-			| $TAR -f - -xvpC "${BUILD_DIR}"  >> $LOGFILE 2>&1
-		fi
-            done
-            truefile=`echo ${file} | sed 's/^\.//'`
-            # No recursion here: if $file is a directory, then the files created
-            # in it will follow.
-            grep "${truefile}$" "${NEWFILES}" &>/dev/null
-            if [ $? -eq 0 ]; then
-		$TAR --no-recursion -C "${TRANSLROOT}" -cpf - "$file" \
-                    | $TAR -f - -xvpC "${BUILD_DIR}" >> $LOGFILE 2>&1
-            else 
-		$TAR --no-recursion -C "${TRANSLROOT}" -cphf - "$file" \
-                    | $TAR -f - -xvpC "${BUILD_DIR}" >> $LOGFILE 2>&1
-            fi
-	done
+ 	    cat /${TMP_DIR}/newfiles-tar | while read file; do
+                parents=`list_parents ${file} | sed s/^\.//`
+                for p in $parents; do
+                # We have to remove the ./ at the beginning
+		    truep=`echo ${p} | sed s/^\.//`
+                    # Parent has been modified: do _not_ dereference
+		    grep "${truep}$" "${NEWFILES}" &>/dev/null
+		    if [ $? -eq 0 ]; then
+                        $TAR --no-recursion -C "${TRANSLROOT}" -cpf - $p \
+			    | $TAR -f - -xvpC "${BUILD_DIR}" >> $LOGFILE 2>&1
+		    else
+                        # Parent wasn't touched by the install script: dereference
+                        $TAR --no-recursion -C "${TRANSLROOT}" -cphf - $p \
+			    | $TAR -f - -xvpC "${BUILD_DIR}"  >> $LOGFILE 2>&1
+		    fi
+                done
+                truefile=`echo ${file} | sed 's/^\.//'`
+                # No recursion here: if $file is a directory, then the files created
+                # in it will follow.
+                grep "${truefile}$" "${NEWFILES}" &>/dev/null
+                if [ $? -eq 0 ]; then
+		    $TAR --no-recursion -C "${TRANSLROOT}" -cpf - "$file" \
+                        | $TAR -f - -xvpC "${BUILD_DIR}" >> $LOGFILE 2>&1
+                else 
+		    $TAR --no-recursion -C "${TRANSLROOT}" -cphf - "$file" \
+                        | $TAR -f - -xvpC "${BUILD_DIR}" >> $LOGFILE 2>&1
+                fi
+	    done
+	fi
 
 	okfail
 
