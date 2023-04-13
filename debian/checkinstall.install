@@ -1,6 +1,0 @@
-etc/checkinstallrc
-usr/bin/checkinstall
-usr/bin/installwatch
-usr/lib/checkinstall/installwatch.so
-usr/share/doc/*
-usr/share/locale/*/LC_MESSAGES/checkinstall.mo
